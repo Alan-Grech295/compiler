@@ -1,0 +1,85 @@
+#pragma once
+#include <string>
+#include "../Utils/Table.h"
+#include <initializer_list>
+#include <array>
+
+class Lexer
+{
+public:
+#define LEXEMES \
+        X(UNDERSCORE) \
+        X(LETTER) \
+        X(DIGIT) \
+        X(WHITESPACE) \
+        X(EQUAL) \
+        X(SEMICOLON) 
+
+    enum class Lexeme
+    {
+#define X(name) name,
+        LEXEMES
+#undef X
+        OTHER,
+        // Used to keep track of the number of lexemes
+        LAST = OTHER
+    };
+
+    struct Token
+    {
+#define TOKENS \
+        X(IDENTIFIER) \
+        X(INTEGER) \
+        X(WHITESPACE) \
+        X(EQUALS) \
+        X(SEMICOLON) 
+
+        enum class Type
+        {
+            ERROR = 0,
+#define X(name) name,
+            TOKENS
+#undef X
+        };
+
+        Token();
+        Token(Type type, const std::string& lexeme);
+
+    public:
+        Type type;
+        std::string lexeme;
+    };
+
+public:
+    Lexer();
+
+    Table<int>::RefCol operator[](int x)
+    {
+        return transitions[x];
+    }
+
+    Token GetNextToken(const std::string& program, int index);
+
+private:
+    void InitTable();
+
+    inline bool Accepted(int state)
+    {
+        for (int a : acceptedStates)
+        {
+            if (a == state)
+                return true;
+        }
+
+        return false;
+    }
+
+    Token GetTokenByFinalState(int state, const std::string& lexeme);
+
+    Lexeme CatChar(char c);
+
+private:
+    const int NUM_STATES = 6;
+    Table<int> transitions;
+    std::array<int, 5> acceptedStates = {1, 2, 3, 4, 5};
+};
