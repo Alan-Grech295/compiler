@@ -33,3 +33,6 @@
 
 # Compiled
 **/x64
+
+# Visual studio files
+.vs
