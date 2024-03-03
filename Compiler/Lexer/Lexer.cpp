@@ -72,16 +72,9 @@ Lexer::Token Lexer::GetTokenByFinalState(int state, const std::string& lexeme)
 {
     switch (state)
     {
-        case 1:
-            return Token(Token::Type::IDENTIFIER, lexeme);
-        case 2:
-            return Token(Token::Type::WHITESPACE, lexeme);
-        case 3:
-            return Token(Token::Type::EQUALS, lexeme);
-        case 4:
-            return Token(Token::Type::INTEGER, lexeme);
-        case 5:
-            return Token(Token::Type::SEMICOLON, lexeme);
+#define X(name, state) case state: return Token(Token::Type::name, lexeme); 
+        TOKENS
+#undef X
     }
 
     return Token();

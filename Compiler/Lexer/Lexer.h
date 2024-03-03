@@ -28,16 +28,16 @@ public:
     struct Token
     {
 #define TOKENS \
-        X(IDENTIFIER) \
-        X(INTEGER) \
-        X(WHITESPACE) \
-        X(EQUALS) \
-        X(SEMICOLON) 
+        X(IDENTIFIER, 1) \
+        X(INTEGER, 4) \
+        X(WHITESPACE, 2) \
+        X(EQUALS, 3) \
+        X(SEMICOLON, 5) 
 
         enum class Type
         {
             ERROR = 0,
-#define X(name) name,
+#define X(name, state) name,
             TOKENS
 #undef X
         };

@@ -17,4 +17,6 @@ int main()
 		tokens.push_back(token);
 		programIndex += token.lexeme.length();
 	}
+
+	int a = 0;
 }
