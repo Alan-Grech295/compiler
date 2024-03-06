@@ -27,6 +27,7 @@ public:
 
     struct Token
     {
+        // Token Name, Final State
 #define TOKENS \
         X(IDENTIFIER, 1) \
         X(INTEGER, 4) \
@@ -81,5 +82,9 @@ private:
 private:
     const int NUM_STATES = 6;
     Table<int> transitions;
-    std::array<int, 5> acceptedStates = {1, 2, 3, 4, 5};
+    std::array<int, 5> acceptedStates = {
+#define X(name, state) state,
+        TOKENS
+#undef X
+    };
 };
