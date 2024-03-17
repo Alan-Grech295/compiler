@@ -1,15 +1,7 @@
 #include "Lexer.h"
 #include <cctype>
 
-Lexer::Token::Token()
-    : type(Type::ERROR), lexeme(std::string())
-{
-}
-
-Lexer::Token::Token(Type type, const std::string& lexeme)
-    : type(type), lexeme(lexeme)
-{
-}
+using namespace Tokens;
 
 Lexer::Lexer()
     : transitions(Table<int>((int)Lexeme::LAST + 1, NUM_STATES, -1))
@@ -17,7 +9,7 @@ Lexer::Lexer()
     InitTable();
 }
 
-Lexer::Token Lexer::GetNextToken(const std::string& program, int index)
+Tokens::Token Lexer::GetNextToken(const std::string& program, int index)
 {
     int state = 0;
     int lastAccState = -1;
@@ -58,7 +50,7 @@ void Lexer::InitTable()
     transitions[2][(int)Lexeme::WHITESPACE] = 2;
 
     // Equals Sign
-    transitions[0][(int)Lexeme::EQUAL] = 3;
+    transitions[0][(int)Lexeme::EQUALS] = 3;
 
     // Integers
     transitions[0][(int)Lexeme::DIGIT] = 4;
@@ -68,16 +60,16 @@ void Lexer::InitTable()
     transitions[0][(int)Lexeme::SEMICOLON] = 5;
 }
 
-Lexer::Token Lexer::GetTokenByFinalState(int state, const std::string& lexeme)
+Token Lexer::GetTokenByFinalState(int state, const std::string& lexeme)
 {
     switch (state)
     {
-#define X(name, state) case state: return Token(Token::Type::name, lexeme); 
-        TOKENS
+#define X(cls, state) case state: return cls(lexeme); 
+        TOKEN_FINAL_STATE
 #undef X
     }
 
-    return Token();
+    return Tokens::Token();
 }
 
 Lexer::Lexeme Lexer::CatChar(char c)
@@ -86,14 +78,51 @@ Lexer::Lexeme Lexer::CatChar(char c)
         return Lexeme::LETTER;
     else if (std::isdigit(c))
         return Lexeme::DIGIT;
-    else if (c == '_')
-        return Lexeme::UNDERSCORE;
     else if (std::isspace(c))
         return Lexeme::WHITESPACE;
-    else if (c == ';')
+
+    switch (c)
+    {
+    case '=':
+        return Lexeme::EQUALS;
+    case '>':
+        return Lexeme::GREATER_THAN;
+    case '<':
+        return Lexeme::LESS_THAN;
+    case '!':
+        return Lexeme::EXCLAMATION;
+    case '+':
+        return Lexeme::PLUS;
+    case '-':
+        return Lexeme::DASH;
+    case '*':
+        return Lexeme::ASTERISK;
+    case '/':
+        return Lexeme::FORWARD_SLASH;
+    case '(':
+        return Lexeme::OPEN_PAREN;
+    case ')':
+        return Lexeme::CLOSE_PAREN;
+    case '[':
+        return Lexeme::OPEN_SQ_BRACK;
+    case ']':
+        return Lexeme::CLOSE_SQ_BRACK;
+    case '{':
+        return Lexeme::OPEN_CURLY_BRACK;
+    case '}':
+        return Lexeme::CLOSE_CURLY_BRACK;
+    case '_':
+        return Lexeme::UNDERSCORE;
+    case ',':
+        return Lexeme::COMMA;
+    case '.':
+        return Lexeme::FULLSTOP;
+    case ':':
+        return Lexeme::COLON;
+    case ';':
         return Lexeme::SEMICOLON;
-    else if (c == '=')
-        return Lexeme::EQUAL;
+    }
 
     return Lexeme::OTHER;
 }
+

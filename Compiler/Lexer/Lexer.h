@@ -1,19 +1,42 @@
 #pragma once
 #include <string>
-#include "../Utils/Table.h"
 #include <initializer_list>
 #include <array>
+
+#include "../Utils/Table.h"
+#include "Tokens.h"
 
 class Lexer
 {
 public:
 #define LEXEMES \
-        X(UNDERSCORE) \
+        X(HEX) \
         X(LETTER) \
         X(DIGIT) \
         X(WHITESPACE) \
-        X(EQUAL) \
-        X(SEMICOLON) 
+                    \
+        X(EQUALS) \
+        X(GREATER_THAN) \
+        X(LESS_THAN) \
+        X(EXCLAMATION) \
+                    \
+        X(PLUS) \
+        X(DASH) \
+        X(ASTERISK) \
+        X(FORWARD_SLASH) \
+                    \
+        X(OPEN_PAREN) \
+        X(CLOSE_PAREN) \
+        X(OPEN_SQ_BRACK) \
+        X(CLOSE_SQ_BRACK) \
+        X(OPEN_CURLY_BRACK) \
+        X(CLOSE_CURLY_BRACK) \
+                        \
+        X(UNDERSCORE) \
+        X(COMMA) \
+        X(FULLSTOP) \
+        X(COLON) \
+        X(SEMICOLON)  
 
     enum class Lexeme
     {
@@ -25,30 +48,31 @@ public:
         LAST = OTHER
     };
 
-    struct Token
-    {
-#define TOKENS \
-        X(IDENTIFIER, 1) \
-        X(INTEGER, 4) \
-        X(WHITESPACE, 2) \
-        X(EQUALS, 3) \
-        X(SEMICOLON, 5) 
-
-        enum class Type
-        {
-            ERROR = 0,
-#define X(name, state) name,
-            TOKENS
-#undef X
-        };
-
-        Token();
-        Token(Type type, const std::string& lexeme);
-
-    public:
-        Type type;
-        std::string lexeme;
-    };
+#define TOKEN_FINAL_STATE \
+        X(IntegerLiteral, 1) \
+        X(FloatLiteral, 3) \
+        X(Identifier, 4) \
+        X(AdditiveOp, 5) \
+        X(AdditiveOp, 24) \
+        X(MultiplicativeOp, 6) \
+        X(MultiplicativeOp, 9) \
+        X(LineComment, 7) \
+        X(BlockComment, 8) \
+        X(BlockComment, 10) \
+        X(RelationalOp, 11) \
+        X(RelationalOp, 14) \
+        X(Assignment, 12) \
+        X(Punctuation, 15) \
+        X(Punctuation, 16) \
+        X(Punctuation, 17) \
+        X(Punctuation, 25) \
+        X(Bracket, 18) \
+        X(Bracket, 19) \
+        X(Bracket, 20) \
+        X(Bracket, 21) \
+        X(Bracket, 22) \
+        X(Bracket, 23) \
+        X(NewLine, 26) 
 
 public:
     Lexer();
@@ -58,7 +82,7 @@ public:
         return transitions[x];
     }
 
-    Token GetNextToken(const std::string& program, int index);
+    Tokens::Token GetNextToken(const std::string& program, int index);
 
 private:
     void InitTable();
@@ -74,12 +98,15 @@ private:
         return false;
     }
 
-    Token GetTokenByFinalState(int state, const std::string& lexeme);
+    Tokens::Token GetTokenByFinalState(int state, const std::string& lexeme);
 
     Lexeme CatChar(char c);
 
 private:
-    const int NUM_STATES = 6;
+    const int NUM_STATES = 27;
     Table<int> transitions;
-    std::array<int, 5> acceptedStates = {1, 2, 3, 4, 5};
+#define X(cls, state) + 1
+    static const int NUM_FINAL_STATES = 0 TOKEN_FINAL_STATE;
+#undef X
+    std::array<int, NUM_FINAL_STATES> acceptedStates = {1, 2, 3, 4, 5};
 };
