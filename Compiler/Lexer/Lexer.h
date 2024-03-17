@@ -13,7 +13,6 @@ class Lexer
 {
 public:
 #define LEXEMES \
-        X(HEX) \
         X(HEX_LETTER) \
         X(LETTER) \
         X(DIGIT) \
@@ -41,6 +40,7 @@ public:
         X(FULLSTOP) \
         X(COLON) \
         X(SEMICOLON)  \
+        X(HASHTAG)  \
                     \
         X(NEW_LINE) \
 
@@ -58,6 +58,7 @@ public:
 #define TOKEN_FINAL_STATE \
         X(IntegerLiteral, 1) \
         X(FloatLiteral, 3) \
+        X(ColourLiteral, 33) \
         X(Identifier, 4) \
         X(AdditiveOp, 5) \
         X(AdditiveOp, 24) \

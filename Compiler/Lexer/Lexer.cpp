@@ -15,25 +15,31 @@ std::unique_ptr<Token> Lexer::GetNextToken(const std::string& program, int& inde
     bool inLineComment = nextToken->type == Token::Type::LINE_COMMENT;
     bool inBlockComment = nextToken->type == Token::Type::BLOCK_COMMENT && nextToken->As<BlockComment>().open;
 
-    while ((excludeWhitespace && nextToken->type == Token::Type::WHITE_SPACE) || (excludeComments && (inLineComment || inBlockComment)))
+    while ((excludeWhitespace && (nextToken->type == Token::Type::WHITE_SPACE || nextToken->type == Token::Type::NEW_LINE)) ||
+        (excludeComments && (nextToken->type == Token::Type::BLOCK_COMMENT || inLineComment || inBlockComment)))
     {
-        if (nextToken->type == Token::Type::NEW_LINE)
-            inLineComment = false;
+        index += nextToken->lexemeLength;
+        nextToken = GetNextToken(program, index);
+
+        if (inLineComment)
+        {
+            if(nextToken->type == Token::Type::NEW_LINE)
+                inLineComment = false;
+        }
         else
+        {
             inLineComment = nextToken->type == Token::Type::LINE_COMMENT;
+        }
 
         if (inBlockComment)
         {
-            if(nextToken->type == Token::Type::BLOCK_COMMENT && !nextToken->As<BlockComment>().open)
+            if (nextToken->type == Token::Type::BLOCK_COMMENT && !nextToken->As<BlockComment>().open)
                 inBlockComment = false;
         }
         else
         {
             inBlockComment = nextToken->type == Token::Type::BLOCK_COMMENT && nextToken->As<BlockComment>().open;
         }
-
-        index += nextToken->lexemeLength;
-        nextToken = GetNextToken(program, index);
     }
 
     return std::move(nextToken);
@@ -41,6 +47,9 @@ std::unique_ptr<Token> Lexer::GetNextToken(const std::string& program, int& inde
 
 std::unique_ptr<Token> Lexer::GetNextToken(const std::string& program, int index)
 {
+    if (index >= program.length())
+        return std::move(std::make_unique<Token>(Token::Type::END_OF_FILE, " "));
+
     int state = 0;
     int lastAccState = -1;
     int lastIndex = -1;
@@ -151,6 +160,29 @@ void Lexer::InitTable()
         transitions[34][(int)Lexeme::WHITESPACE] = 34;
     #pragma endregion
 
+    #pragma region Colour Literal
+        transitions[0][(int)Lexeme::HASHTAG] = 27;
+
+        transitions[27][(int)Lexeme::HEX_LETTER] = 28;
+        transitions[27][(int)Lexeme::DIGIT] = 28;
+
+        transitions[28][(int)Lexeme::HEX_LETTER] = 29;
+        transitions[28][(int)Lexeme::DIGIT] = 29;
+
+        transitions[29][(int)Lexeme::HEX_LETTER] = 30;
+        transitions[29][(int)Lexeme::DIGIT] = 30;
+
+        transitions[30][(int)Lexeme::HEX_LETTER] = 31;
+        transitions[30][(int)Lexeme::DIGIT] = 31;
+
+        transitions[31][(int)Lexeme::HEX_LETTER] = 32;
+        transitions[31][(int)Lexeme::DIGIT] = 32;
+
+        transitions[32][(int)Lexeme::HEX_LETTER] = 33;
+        transitions[32][(int)Lexeme::DIGIT] = 33;
+    #pragma endregion
+
+
 }
 
 std::unique_ptr<Token> Lexer::GetTokenByFinalState(int state, const std::string& lexeme)
@@ -225,6 +257,8 @@ Lexer::Lexeme Lexer::CatChar(char c)
         return Lexeme::SEMICOLON;
     case '\n':
         return Lexeme::NEW_LINE;
+    case '#':
+        return Lexeme::HASHTAG;
     }
 
     return Lexeme::OTHER;

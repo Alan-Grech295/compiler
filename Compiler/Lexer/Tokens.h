@@ -2,6 +2,7 @@
 #include <string>
 #include <unordered_set>
 #include <memory>
+#include <sstream>
 
 namespace Tokens
 {
@@ -11,8 +12,11 @@ namespace Tokens
         {
             ERROR = 0,
             WHITE_SPACE,
+            TYPE,
             INT_LITERAL,
             FLOAT_LITERAL,
+            COLOUR_LITERAL,
+            BOOLEAN_LITERAL,
             IDENTIFIER,
             KEYWORD,
             PUNCTUATION,
@@ -20,10 +24,12 @@ namespace Tokens
             MULT_OP,
             ADD_OP,
             REL_OP,
+            UNARY_OP,
             ASSIGNMENT,
             LINE_COMMENT,
             BLOCK_COMMENT,
-            NEW_LINE,
+            NEW_LINE, 
+            END_OF_FILE,
         };
 
         Token(int length)
@@ -86,21 +92,226 @@ namespace Tokens
         float value;
     };
 
+    struct ColourLiteral : public Token
+    {
+        ColourLiteral(const std::string& lexeme)
+            : Token(Token::Type::COLOUR_LITERAL, lexeme)
+        {
+            std::stringstream ss;
+            ss << std::hex << lexeme.substr(1, 6);
+            ss >> value;
+        }
+
+        static std::unique_ptr<Token> Create(const std::string& lexeme)
+        {
+            return std::make_unique<ColourLiteral>(lexeme);
+        }
+    public:
+        int value = 0;
+    };
+
+    struct BooleanLiteral : public Token
+    {
+        BooleanLiteral(const std::string& lexeme)
+            : Token(Token::Type::BOOLEAN_LITERAL, lexeme), value(lexeme == "true")
+        {
+        }
+
+        static std::unique_ptr<Token> Create(const std::string& lexeme)
+        {
+            return std::make_unique<BooleanLiteral>(lexeme);
+        }
+    public:
+        bool value = false;
+    };
+
+    struct Type : public Token
+    {
+        enum class Name
+        {
+            FLOAT,
+            INT,
+            BOOL,
+            COLOUR,
+        };
+
+        Type(const std::string& lexeme)
+            : Token(Token::Type::TYPE, lexeme)
+        {
+            if (lexeme == "float")
+            {
+                name = Name::FLOAT;
+            }
+            else if (lexeme == "int")
+            {
+                name = Name::INT;
+            }
+            else if (lexeme == "bool")
+            {
+                name = Name::BOOL;
+            }
+            else if (lexeme == "colour")
+            {
+                name = Name::COLOUR;
+            }
+        }
+
+        static std::unique_ptr<Token> Create(const std::string& lexeme)
+        {
+            return std::make_unique<Type>(lexeme);
+        }
+    public:
+        Name name;
+    };
+
+    struct MultiplicativeOp : public Token
+    {
+        enum class Type
+        {
+            MULTIPLY,
+            DIVIDE,
+            AND,
+        };
+
+        MultiplicativeOp(const std::string& lexeme)
+            : Token(Token::Type::MULT_OP, lexeme)
+        {
+            if (lexeme == "*")
+            {
+                type = Type::MULTIPLY;
+            }
+            else if (lexeme == "/")
+            {
+                type = Type::DIVIDE;
+            }
+            else
+            {
+                type = Type::AND;
+            }
+        }
+
+        static std::unique_ptr<Token> Create(const std::string& lexeme)
+        {
+            return std::make_unique<MultiplicativeOp>(lexeme);
+        }
+    public:
+        Type type;
+    };
+
+    struct AdditiveOp : public Token
+    {
+        enum class Type
+        {
+            ADD,
+            SUBTRACT,
+            OR,
+        };
+
+        AdditiveOp(const std::string& lexeme)
+            : Token(Token::Type::ADD_OP, lexeme)
+        {
+            if (lexeme == "+")
+            {
+                type = Type::ADD;
+            }
+            else if (lexeme == "-")
+            {
+                type = Type::SUBTRACT;
+            }
+            else
+            {
+                type = Type::OR;
+            }
+        }
+
+        static std::unique_ptr<Token> Create(const std::string& lexeme)
+        {
+            return std::make_unique<AdditiveOp>(lexeme);
+        }
+    public:
+        Type type;
+    };
+
+    struct RelationalOp : public Token
+    {
+        enum class Type
+        {
+            EQUAL,
+            GREATER,
+            LESS_THAN,
+            GREATER_EQUAL,
+            LESS_THAN_EQUAL,
+        };
+
+        RelationalOp(const std::string& lexeme)
+            : Token(Token::Type::REL_OP, lexeme)
+        {
+            switch (lexeme[0])
+            {
+            case '=':
+                type = Type::EQUAL;
+                break;
+            case '>':
+                type = Type::GREATER;
+                if (lexeme.length() == 2)
+                    type = Type::GREATER_EQUAL;
+                break;
+            case '<':
+                type = Type::LESS_THAN;
+                if (lexeme.length() == 2)
+                    type = Type::LESS_THAN_EQUAL;
+                break;
+            }
+        }
+
+        static std::unique_ptr<Token> Create(const std::string& lexeme)
+        {
+            return std::make_unique<RelationalOp>(lexeme);
+        }
+    public:
+        Type type;
+    };
+
+    struct UnaryOp : public Token
+    {
+        enum class Type
+        {
+            NOT,
+        };
+
+        UnaryOp(const std::string& lexeme)
+            : Token(Token::Type::UNARY_OP, lexeme)
+        {
+            type = Type::NOT;
+        }
+
+        static std::unique_ptr<Token> Create(const std::string& lexeme)
+        {
+            return std::make_unique<UnaryOp>(lexeme);
+        }
+    public:
+        Type type;
+    };
+
     struct Keyword : public Token
     {
 #define KEYWORDS \
-        X(float, FLOAT) \
-        X(int, INT) \
-        X(bool, BOOL) \
-        X(colour, COLOUR) \
-        X(true, TRUE) \
-        X(false, FALSE) \
-        X(let, LET) \
-        X(if, IF) \
-        X(for, FOR) \
-        X(while, WHILE) \
-        X(return, RETURN) \
-        X(fun, FUN)
+        X(float, FLOAT, Type) \
+        X(int, INT, Type) \
+        X(bool, BOOL, Type) \
+        X(colour, COLOUR, Type) \
+        X(true, TRUE, BooleanLiteral) \
+        X(false, FALSE, BooleanLiteral) \
+        X(and, AND, MultiplicativeOp) \
+        X(or, OR, AdditiveOp) \
+        X(not, NOT, UnaryOp) \
+        X(let, LET, Keyword) \
+        X(if, IF, Keyword) \
+        X(for, FOR, Keyword) \
+        X(while, WHILE, Keyword) \
+        X(return, RETURN, Keyword) \
+        X(as, AS, Keyword) \
+        X(fun, FUN, Keyword)
 
         enum class Type
         {
@@ -112,14 +323,17 @@ namespace Tokens
         Keyword(const std::string& lexeme)
             : Token(Token::Type::KEYWORD, lexeme)
         {
-#define X(keyword, name) if(lexeme == #keyword) { type = Type::name; return;}
+#define X(keyword, name, _) if(lexeme == #keyword) { type = Type::name; return;}
             KEYWORDS
 #undef X
         }
 
         static std::unique_ptr<Token> Create(const std::string& lexeme)
         {
-            return std::make_unique<Keyword>(lexeme);
+#define X(keyword, name, cls) if(lexeme == #keyword) { return std::make_unique<::Tokens::cls>(lexeme); }
+            KEYWORDS
+#undef X
+            //return std::make_unique<Keyword>(lexeme);
         }
     public:
         Type type;
@@ -239,104 +453,6 @@ namespace Tokens
         static std::unique_ptr<Token> Create(const std::string& lexeme)
         {
             return std::make_unique<Bracket>(lexeme);
-        }
-    public:
-        Type type;
-    };
-
-    struct MultiplicativeOp : public Token
-    {
-        enum class Type
-        {
-            MULTIPLY,
-            DIVIDE,
-        };
-
-        MultiplicativeOp(const std::string& lexeme)
-            : Token(Token::Type::MULT_OP, lexeme)
-        {
-            if (lexeme == "*")
-            {
-                type = Type::MULTIPLY;
-            }
-            else
-            {
-                type = Type::DIVIDE;
-            }
-        }
-
-        static std::unique_ptr<Token> Create(const std::string& lexeme)
-        {
-            return std::make_unique<MultiplicativeOp>(lexeme);
-        }
-    public:
-        Type type;
-    };
-
-    struct AdditiveOp : public Token
-    {
-        enum class Type
-        {
-            ADD,
-            SUBTRACT,
-        };
-
-        AdditiveOp(const std::string& lexeme)
-            : Token(Token::Type::ADD_OP, lexeme)
-        {
-            if (lexeme == "+")
-            {
-                type = Type::ADD;
-            }
-            else
-            {
-                type = Type::SUBTRACT;
-            }
-        }
-
-        static std::unique_ptr<Token> Create(const std::string& lexeme)
-        {
-            return std::make_unique<AdditiveOp>(lexeme);
-        }
-    public:
-        Type type;
-    };
-
-    struct RelationalOp : public Token
-    {
-        enum class Type
-        {
-            EQUAL,
-            GREATER,
-            LESS_THAN,
-            GREATER_EQUAL,
-            LESS_THAN_EQUAL,
-        };
-
-        RelationalOp(const std::string& lexeme)
-            : Token(Token::Type::REL_OP, lexeme)
-        {
-            switch (lexeme[0])
-            {
-            case '=':
-                type = Type::EQUAL;
-                break;
-            case '>':
-                type = Type::GREATER;
-                if(lexeme.length() == 2)
-                    type = Type::GREATER_EQUAL;
-                break;
-            case '<':
-                type = Type::LESS_THAN;
-                if (lexeme.length() == 2)
-                    type = Type::LESS_THAN_EQUAL;
-                break;
-            }
-        }
-
-        static std::unique_ptr<Token> Create(const std::string& lexeme)
-        {
-            return std::make_unique<RelationalOp>(lexeme);
         }
     public:
         Type type;
