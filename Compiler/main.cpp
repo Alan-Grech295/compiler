@@ -1,22 +1,38 @@
 #include <iostream>
 #include <vector>
+#include <fstream>
+
 #include "Lexer/Lexer.h"
+
 
 int main()
 {
-	Lexer lexer{};
+    Lexer lexer{};
 
-	std::string program = "_xyz=23; y= 100;   z=4 ;";
+    std::ifstream file;
+    std::string line;
+    file.open("src/example - full.txt");
+    std::string fileText;
+    if (file.is_open())
+    {
+        while (std::getline(file, line))
+        {
+            fileText += line + "\n";
+        }
+        file.close();
+    }
 
-	int programIndex = 0;
-	std::vector<Lexer::Token> tokens{};
+    std::cout << fileText << std::endl;
 
-	while (programIndex < program.length())
-	{
-		auto token = lexer.GetNextToken(program, programIndex);
-		tokens.push_back(token);
-		programIndex += token.lexeme.length();
-	}
+    int programIndex = 0;
+    std::vector<std::unique_ptr<Tokens::Token>> tokens{};
 
-	int a = 0;
+    while (programIndex < fileText.length())
+    {
+        auto token = lexer.GetNextToken(fileText, programIndex, true, true);
+        programIndex += token->lexemeLength;
+        tokens.push_back(std::move(token));
+    }
+
+    int a = 0;
 }

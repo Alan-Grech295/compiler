@@ -130,6 +130,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="Lexer\Lexer.cpp" />
+    <ClCompile Include="Lexer\Tokens.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Utils\Table.cpp" />
   </ItemGroup>
@@ -137,6 +138,9 @@
     <ClInclude Include="Lexer\Lexer.h" />
     <ClInclude Include="Lexer\Tokens.h" />
     <ClInclude Include="Utils\Table.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="src\example.txt" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

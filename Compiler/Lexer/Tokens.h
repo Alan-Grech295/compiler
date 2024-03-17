@@ -1,5 +1,7 @@
 #pragma once
 #include <string>
+#include <unordered_set>
+#include <memory>
 
 namespace Tokens
 {
@@ -8,6 +10,7 @@ namespace Tokens
         enum class Type
         {
             ERROR = 0,
+            WHITE_SPACE,
             INT_LITERAL,
             FLOAT_LITERAL,
             IDENTIFIER,
@@ -23,17 +26,36 @@ namespace Tokens
             NEW_LINE,
         };
 
-        Token()
-            : type(Type::ERROR), lexemeLength(UINT32_MAX)
+        Token(int length)
+            : type(Type::ERROR), lexemeLength(length)
         {}
 
         Token(Type type, const std::string& lexeme)
             : type(type), lexemeLength(lexeme.length())
         {}
 
+        virtual ~Token() = default;
+
+        template<typename T>
+        T& As() 
+        {
+            return *(T*)this;
+        }
     public:
         Type type;
         uint32_t lexemeLength;
+    };
+
+    struct Whitespace : public Token
+    {
+        Whitespace(const std::string& lexeme)
+            : Token(Token::Type::WHITE_SPACE, lexeme)
+        {}
+
+        static std::unique_ptr<Token> Create(const std::string& lexeme)
+        {
+            return std::make_unique<Whitespace>(lexeme);
+        }
     };
 
     struct IntegerLiteral : public Token
@@ -41,6 +63,11 @@ namespace Tokens
         IntegerLiteral(const std::string& lexeme)
             : Token(Token::Type::INT_LITERAL, lexeme), value(std::stoi(lexeme))
         {}
+
+        static std::unique_ptr<Token> Create(const std::string& lexeme)
+        {
+            return std::make_unique<IntegerLiteral>(lexeme);
+        }
     public:
         int value;
     };
@@ -50,22 +77,18 @@ namespace Tokens
         FloatLiteral(const std::string& lexeme)
             : Token(Token::Type::FLOAT_LITERAL, lexeme), value(std::stof(lexeme))
         {}
+
+        static std::unique_ptr<Token> Create(const std::string& lexeme)
+        {
+            return std::make_unique<FloatLiteral>(lexeme);
+        }
     public:
         float value;
     };
 
-    struct Identifier : public Token
-    {
-        Identifier(const std::string& lexeme)
-            : Token(Token::Type::IDENTIFIER, lexeme), name(lexeme)
-        {}
-    public:
-        std::string name;
-    };
-
     struct Keyword : public Token
     {
-    #define KEYWORDS \
+#define KEYWORDS \
         X(float, FLOAT) \
         X(int, INT) \
         X(bool, BOOL) \
@@ -93,8 +116,32 @@ namespace Tokens
             KEYWORDS
 #undef X
         }
+
+        static std::unique_ptr<Token> Create(const std::string& lexeme)
+        {
+            return std::make_unique<Keyword>(lexeme);
+        }
     public:
         Type type;
+
+        static const std::unordered_set<std::string> keywords;
+    };
+
+    struct Identifier : public Token
+    {
+        Identifier(const std::string& lexeme)
+            : Token(Token::Type::IDENTIFIER, lexeme), name(lexeme)
+        {}
+
+        static std::unique_ptr<Token> Create(const std::string& lexeme)
+        {
+            if (Keyword::keywords.contains(lexeme))
+                return Keyword::Create(lexeme);
+
+            return std::make_unique<Identifier>(lexeme);
+        }
+    public:
+        std::string name;
     };
 
     struct Punctuation : public Token
@@ -129,6 +176,11 @@ namespace Tokens
                 break;
             }
         }
+
+        static std::unique_ptr<Token> Create(const std::string& lexeme)
+        {
+            return std::make_unique<Punctuation>(lexeme);
+        }
     public:
         Type type;
     };
@@ -138,6 +190,11 @@ namespace Tokens
         NewLine(const std::string& lexeme)
             : Token(Token::Type::NEW_LINE, lexeme)
         {
+        }
+
+        static std::unique_ptr<Token> Create(const std::string& lexeme)
+        {
+            return std::make_unique<NewLine>(lexeme);
         }
     };
 
@@ -178,6 +235,11 @@ namespace Tokens
                 break;
             }
         }
+
+        static std::unique_ptr<Token> Create(const std::string& lexeme)
+        {
+            return std::make_unique<Bracket>(lexeme);
+        }
     public:
         Type type;
     };
@@ -202,6 +264,11 @@ namespace Tokens
                 type = Type::DIVIDE;
             }
         }
+
+        static std::unique_ptr<Token> Create(const std::string& lexeme)
+        {
+            return std::make_unique<MultiplicativeOp>(lexeme);
+        }
     public:
         Type type;
     };
@@ -225,6 +292,11 @@ namespace Tokens
             {
                 type = Type::SUBTRACT;
             }
+        }
+
+        static std::unique_ptr<Token> Create(const std::string& lexeme)
+        {
+            return std::make_unique<AdditiveOp>(lexeme);
         }
     public:
         Type type;
@@ -261,6 +333,11 @@ namespace Tokens
                 break;
             }
         }
+
+        static std::unique_ptr<Token> Create(const std::string& lexeme)
+        {
+            return std::make_unique<RelationalOp>(lexeme);
+        }
     public:
         Type type;
     };
@@ -271,6 +348,11 @@ namespace Tokens
             : Token(Token::Type::ASSIGNMENT, lexeme)
         {
         }
+
+        static std::unique_ptr<Token> Create(const std::string& lexeme)
+        {
+            return std::make_unique<Assignment>(lexeme);
+        }
     };
 
     struct LineComment : public Token
@@ -279,6 +361,11 @@ namespace Tokens
             : Token(Token::Type::LINE_COMMENT, lexeme)
         {
         }
+
+        static std::unique_ptr<Token> Create(const std::string& lexeme)
+        {
+            return std::make_unique<LineComment>(lexeme);
+        }
     };
 
     struct BlockComment : public Token
@@ -286,6 +373,11 @@ namespace Tokens
         BlockComment(const std::string& lexeme)
             : Token(Token::Type::BLOCK_COMMENT, lexeme), open(lexeme == "/*")
         {
+        }
+
+        static std::unique_ptr<Token> Create(const std::string& lexeme)
+        {
+            return std::make_unique<BlockComment>(lexeme);
         }
 
     public:

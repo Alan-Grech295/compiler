@@ -1,0 +1,10 @@
+/* This function takes two integers and return true if 
+* the first argument is greater than the second. 
+* Otherwise if returns false. */ 
+fun XGreaterY(x: int , y: int)->bool { 
+    let ans:bool = true; 
+    if (y>x) { 
+        ans = false; 
+    } 
+    return ans; 
+}

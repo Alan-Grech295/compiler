@@ -2,15 +2,19 @@
 #include <string>
 #include <initializer_list>
 #include <array>
+#include <memory>
 
 #include "../Utils/Table.h"
 #include "Tokens.h"
+
+using namespace Tokens;
 
 class Lexer
 {
 public:
 #define LEXEMES \
         X(HEX) \
+        X(HEX_LETTER) \
         X(LETTER) \
         X(DIGIT) \
         X(WHITESPACE) \
@@ -36,7 +40,10 @@ public:
         X(COMMA) \
         X(FULLSTOP) \
         X(COLON) \
-        X(SEMICOLON)  
+        X(SEMICOLON)  \
+                    \
+        X(NEW_LINE) \
+
 
     enum class Lexeme
     {
@@ -72,6 +79,7 @@ public:
         X(Bracket, 21) \
         X(Bracket, 22) \
         X(Bracket, 23) \
+        X(Whitespace, 34) \
         X(NewLine, 26) 
 
 public:
@@ -82,7 +90,9 @@ public:
         return transitions[x];
     }
 
-    Tokens::Token GetNextToken(const std::string& program, int index);
+    std::unique_ptr<Token> GetNextToken(const std::string& program, int& index, bool excludeWhitespace, bool excludeComments);
+
+    std::unique_ptr<Token> GetNextToken(const std::string& program, int index);
 
 private:
     void InitTable();
@@ -98,15 +108,17 @@ private:
         return false;
     }
 
-    Tokens::Token GetTokenByFinalState(int state, const std::string& lexeme);
+    std::unique_ptr<Token> GetTokenByFinalState(int state, const std::string& lexeme);
 
     Lexeme CatChar(char c);
 
 private:
-    const int NUM_STATES = 27;
+    const int NUM_STATES = 35;
     Table<int> transitions;
 #define X(cls, state) + 1
     static const int NUM_FINAL_STATES = 0 TOKEN_FINAL_STATE;
 #undef X
-    std::array<int, NUM_FINAL_STATES> acceptedStates = {1, 2, 3, 4, 5};
+#define X(cls, state) state,
+    std::array<int, NUM_FINAL_STATES> acceptedStates = { TOKEN_FINAL_STATE };
+#undef X
 };
