@@ -10,32 +10,124 @@ ASTBlockNode::ASTBlockNode()
 {
 }
 
-ASTIdentifier::ASTIdentifier(const std::string& name, Tokens::Type::Name type)
+ASTIdentifierNode::ASTIdentifierNode(const std::string& name, Tokens::VarType::Type type)
     : name(name), type(type)
 {
 }
 
-ASTVarDecl::ASTVarDecl(std::unique_ptr<ASTIdentifier> identifier, std::unique_ptr<ASTValueNode> value)
+ASTVarDeclNode::ASTVarDeclNode(std::unique_ptr<ASTIdentifierNode> identifier, std::unique_ptr<ASTExpressionNode> value)
     : identifier(std::move(identifier)), value(std::move(value))
 {
 }
 
-ASTIntLiteral::ASTIntLiteral(int value)
+ASTIntLiteralNode::ASTIntLiteralNode(int value)
     : value(value)
 {
 }
 
-ASTFloatLiteral::ASTFloatLiteral(float value)
+ASTFloatLiteralNode::ASTFloatLiteralNode(float value)
     : value(value)
 {
 }
 
-ASTBooleanLiteral::ASTBooleanLiteral(bool value)
+ASTBooleanLiteralNode::ASTBooleanLiteralNode(bool value)
     : value(value)
 {
 }
 
-ASTColourLiteral::ASTColourLiteral(int value)
+ASTColourLiteralNode::ASTColourLiteralNode(int value)
     : value(value)
+{
+}
+
+ASTBinaryOpNode::ASTBinaryOpNode(Type type, std::unique_ptr<ASTExpressionNode> left, std::unique_ptr<ASTExpressionNode> right)
+    : type(type), left(std::move(left)), right(std::move(right))
+{
+}
+
+ASTBinaryOpNode::ASTBinaryOpNode(Tokens::AdditiveOp::Type type, std::unique_ptr<ASTExpressionNode> left, std::unique_ptr<ASTExpressionNode> right)
+    : type(Type::ADD), left(std::move(left)), right(std::move(right))
+{
+    switch (type)
+    {
+        case Tokens::AdditiveOp::Type::ADD:
+            this->type = Type::ADD;
+            break;
+        case Tokens::AdditiveOp::Type::SUBTRACT:
+            this->type = Type::SUBTRACT;
+            break;
+        case Tokens::AdditiveOp::Type::OR:
+            this->type = Type::OR;
+            break;
+    }
+}
+
+ASTBinaryOpNode::ASTBinaryOpNode(Tokens::MultiplicativeOp::Type type, std::unique_ptr<ASTExpressionNode> left, std::unique_ptr<ASTExpressionNode> right)
+    : type(Type::ADD), left(std::move(left)), right(std::move(right))
+{
+    switch (type)
+    {
+        case Tokens::MultiplicativeOp::Type::MULTIPLY:
+            this->type = Type::MULTIPLY;
+            break;
+        case Tokens::MultiplicativeOp::Type::DIVIDE:
+            this->type = Type::DIVIDE;
+            break;
+        case Tokens::MultiplicativeOp::Type::AND:
+            this->type = Type::AND;
+            break;
+    }
+}
+
+ASTBinaryOpNode::ASTBinaryOpNode(Tokens::RelationalOp::Type type, std::unique_ptr<ASTExpressionNode> left, std::unique_ptr<ASTExpressionNode> right)
+    : type(Type::ADD), left(std::move(left)), right(std::move(right))
+{
+    switch (type)
+    {
+        case Tokens::RelationalOp::Type::EQUAL:
+            this->type = Type::EQUAL;
+            break;
+        case Tokens::RelationalOp::Type::GREATER:
+            this->type = Type::GREATER;
+            break;
+        case Tokens::RelationalOp::Type::GREATER_EQUAL:
+            this->type = Type::GREATER_EQUAL;
+            break;
+        case Tokens::RelationalOp::Type::LESS_THAN:
+            this->type = Type::LESS_THAN;
+            break;
+        case Tokens::RelationalOp::Type::LESS_THAN_EQUAL:
+            this->type = Type::LESS_THAN_EQUAL;
+            break;
+    }
+}
+
+ASTNegateNode::ASTNegateNode(std::unique_ptr<ASTExpressionNode> expr)
+    : expr(std::move(expr))
+{
+}
+
+ASTNotNode::ASTNotNode(std::unique_ptr<ASTExpressionNode> expr)
+    : expr(std::move(expr))
+{
+}
+
+ASTAssignmentNode::ASTAssignmentNode(Scope<ASTIdentifierNode> identifier, Scope<ASTExpressionNode> expr)
+    : identifier(std::move(identifier)), expr(std::move(expr))
+{
+}
+
+ASTDecisionNode::ASTDecisionNode(Scope<ASTExpressionNode> expr, Scope<ASTBlockNode> trueStatement, Scope<ASTBlockNode> falseStatement)
+    : expr(std::move(expr)), trueStatement(std::move(trueStatement)), falseStatement(std::move(falseStatement))
+{
+}
+
+ASTReturnNode::ASTReturnNode(Scope<ASTExpressionNode> expr)
+    : expr(std::move(expr))
+{
+}
+
+ASTFunctionNode::ASTFunctionNode(const std::string& name, const std::vector<Param>& params, Tokens::VarType::Type returnType, Scope<ASTBlockNode> blockNode)
+    : name(name), params(params), returnType(returnType), blockNode(std::move(blockNode))
 {
 }

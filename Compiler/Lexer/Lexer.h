@@ -92,11 +92,11 @@ public:
         return transitions[x];
     }
 
-    std::unique_ptr<Token> GetNextToken(const std::string& program, int& index, bool excludeWhitespace, bool excludeComments);
+    Scope<Token> GetNextToken(const std::string& program, int& index, bool excludeWhitespace, bool excludeComments);
 
-    std::unique_ptr<Token> PeekNextToken(const std::string& program, int& index, bool excludeWhitespace, bool excludeComments);
+    Scope<Token> PeekNextToken(const std::string& program, int& index, bool excludeWhitespace, bool excludeComments);
 
-    std::unique_ptr<Token> GetNextToken(const std::string& program, int index);
+    Scope<Token> GetNextToken(const std::string& program, int index);
 
 private:
     void InitTable();
@@ -112,7 +112,7 @@ private:
         return false;
     }
 
-    std::unique_ptr<Token> GetTokenByFinalState(int state, const std::string& lexeme);
+    Scope<Token> GetTokenByFinalState(int state, const std::string& lexeme);
 
     Lexeme CatChar(char c);
 

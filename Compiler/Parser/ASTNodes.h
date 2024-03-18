@@ -11,20 +11,17 @@ public:
     virtual ~ASTNode() = default;
 };
 
-class ASTStatementNode : public ASTNode
-{
-public:
-    ASTStatementNode() = default;
-    virtual ~ASTStatementNode() = default;
-
-};
-
 class ASTBlockNode : public ASTNode
 {
 public:
     ASTBlockNode();
+
+    inline void AddStatement(std::unique_ptr<ASTNode> statement)
+    {
+        statements.push_back(std::move(statement));
+    }
 public:
-    std::vector<std::unique_ptr<ASTStatementNode>> statements;
+    std::vector<std::unique_ptr<ASTNode>> statements;
 };
 
 class ASTProgramNode : public ASTNode
@@ -35,57 +32,155 @@ public:
     std::unique_ptr<ASTBlockNode> blockNode;
 };
 
-class ASTValueNode : public ASTNode
+class ASTExpressionNode : public ASTNode
 {
 
 };
 
-class ASTIdentifier : public ASTValueNode
+class ASTIdentifierNode : public ASTExpressionNode
 {
 public:
-    ASTIdentifier(const std::string& name, Tokens::Type::Name type);
+    ASTIdentifierNode(const std::string& name, Tokens::VarType::Type type = Tokens::VarType::Type::UNKNOWN);
 public:
     std::string name;
-    Tokens::Type::Name type;
+    Tokens::VarType::Type type = Tokens::VarType::Type::UNKNOWN;
 };
 
-class ASTIntLiteral : public ASTValueNode
+class ASTIntLiteralNode : public ASTExpressionNode
 {
 public:
-    ASTIntLiteral(int value);
+    ASTIntLiteralNode(int value);
 public:
     int value;
 };
 
-class ASTFloatLiteral : public ASTValueNode
+class ASTFloatLiteralNode : public ASTExpressionNode
 {
 public:
-    ASTFloatLiteral(float value);
+    ASTFloatLiteralNode(float value);
 public:
     float value;
 };
 
-class ASTBooleanLiteral : public ASTValueNode
+class ASTBooleanLiteralNode : public ASTExpressionNode
 {
 public:
-    ASTBooleanLiteral(bool value);
+    ASTBooleanLiteralNode(bool value);
 public:
     bool value;
 };
 
-class ASTColourLiteral : public ASTValueNode
+class ASTColourLiteralNode : public ASTExpressionNode
 {
 public:
-    ASTColourLiteral(int value);
+    ASTColourLiteralNode(int value);
 public:
     int value;
 };
 
-class ASTVarDecl : public ASTStatementNode
+class ASTVarDeclNode : public ASTNode
 {
 public:
-    ASTVarDecl(std::unique_ptr<ASTIdentifier> identifier, std::unique_ptr<ASTValueNode> value);
+    ASTVarDeclNode(std::unique_ptr<ASTIdentifierNode> identifier, std::unique_ptr<ASTExpressionNode> value);
 public:
-    std::unique_ptr<ASTIdentifier> identifier;
-    std::unique_ptr<ASTValueNode> value;
+    std::unique_ptr<ASTIdentifierNode> identifier;
+    std::unique_ptr<ASTExpressionNode> value;
+};
+
+class ASTBinaryOpNode : public ASTExpressionNode
+{
+    enum class Type
+    {
+        ADD,
+        SUBTRACT,
+        MULTIPLY,
+        DIVIDE,
+
+        AND,
+        OR,
+
+        EQUAL,
+        GREATER,
+        LESS_THAN,
+        GREATER_EQUAL,
+        LESS_THAN_EQUAL,
+    };
+public:
+    ASTBinaryOpNode(Type type, std::unique_ptr<ASTExpressionNode> left, std::unique_ptr<ASTExpressionNode> right);
+    ASTBinaryOpNode(Tokens::AdditiveOp::Type type, std::unique_ptr<ASTExpressionNode> left, std::unique_ptr<ASTExpressionNode> right);
+    ASTBinaryOpNode(Tokens::MultiplicativeOp::Type type, std::unique_ptr<ASTExpressionNode> left, std::unique_ptr<ASTExpressionNode> right);
+    ASTBinaryOpNode(Tokens::RelationalOp::Type type, std::unique_ptr<ASTExpressionNode> left, std::unique_ptr<ASTExpressionNode> right);
+public:
+    Type type = Type::ADD;
+    std::unique_ptr<ASTExpressionNode> left;
+    std::unique_ptr<ASTExpressionNode> right;
+};
+
+class ASTNegateNode : public ASTExpressionNode
+{
+public:
+    ASTNegateNode(std::unique_ptr<ASTExpressionNode> expr);
+public:
+    std::unique_ptr<ASTExpressionNode> expr;
+};
+
+class ASTNotNode : public ASTExpressionNode
+{
+public:
+    ASTNotNode(std::unique_ptr<ASTExpressionNode> expr);
+public:
+    std::unique_ptr<ASTExpressionNode> expr;
+};
+
+class ASTAssignmentNode : public ASTNode
+{
+public:
+    ASTAssignmentNode(Scope<ASTIdentifierNode> identifier, Scope<ASTExpressionNode> expr);
+public:
+    Scope<ASTIdentifierNode> identifier;
+    Scope<ASTExpressionNode> expr;
+};
+
+class ASTDecisionNode : public ASTNode
+{
+public:
+    ASTDecisionNode(Scope<ASTExpressionNode> expr, Scope<ASTBlockNode> trueStatement, Scope<ASTBlockNode> falseStatement = nullptr);
+
+public:
+    Scope<ASTExpressionNode> expr;
+    Scope<ASTBlockNode> trueStatement;
+    Scope<ASTBlockNode> falseStatement;
+};
+
+class ASTReturnNode : public ASTNode
+{
+public:
+    ASTReturnNode(Scope<ASTExpressionNode> expr);
+
+public:
+    Scope<ASTExpressionNode> expr;
+};
+
+class ASTFunctionNode : public ASTNode
+{
+public:
+    struct Param
+    {
+    public:
+        Param(const std::string& name, Tokens::VarType::Type type)
+            : Name(name), Type(type)
+        {}
+
+        Param() = default;
+    public:
+        std::string Name;
+        Tokens::VarType::Type Type;
+    };
+public:
+    ASTFunctionNode(const std::string& name, const std::vector<Param>& params, Tokens::VarType::Type returnType, Scope<ASTBlockNode> blockNode);
+public:
+    std::string name;
+    std::vector<Param> params;
+    Tokens::VarType::Type returnType;
+    Scope<ASTBlockNode> blockNode;
 };

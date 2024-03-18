@@ -4,6 +4,8 @@
 #include <memory>
 #include <sstream>
 
+#include "Utils/Utils.h"
+
 namespace Tokens
 {
     struct Token
@@ -12,7 +14,7 @@ namespace Tokens
         {
             ERROR = 0,
             WHITE_SPACE,
-            TYPE,
+            VAR_TYPE,
             INT_LITERAL,
             FLOAT_LITERAL,
             COLOUR_LITERAL,
@@ -38,7 +40,7 @@ namespace Tokens
         {}
 
         Token(Type type, const std::string& lexeme)
-            : type(type), lexemeLength(lexeme.length())
+            : type(type), lexemeLength((uint32_t)lexeme.length())
         {}
 
         virtual ~Token() = default;
@@ -46,7 +48,7 @@ namespace Tokens
         template<typename T>
         T& As() 
         {
-            return *(T*)this;
+            return *static_cast<T*>(this);
         }
     public:
         Type type;
@@ -59,10 +61,13 @@ namespace Tokens
             : Token(Token::Type::WHITE_SPACE, lexeme)
         {}
 
-        static std::unique_ptr<Token> Create(const std::string& lexeme)
+        static Scope<Token> Create(const std::string& lexeme)
         {
-            return std::make_unique<Whitespace>(lexeme);
+            return CreateScope<Whitespace>(lexeme);
         }
+
+    public:
+        static const Token::Type TokenType = Token::Type::WHITE_SPACE;
     };
 
     struct IntegerLiteral : public Token
@@ -71,12 +76,14 @@ namespace Tokens
             : Token(Token::Type::INT_LITERAL, lexeme), value(std::stoi(lexeme))
         {}
 
-        static std::unique_ptr<Token> Create(const std::string& lexeme)
+        static Scope<Token> Create(const std::string& lexeme)
         {
-            return std::make_unique<IntegerLiteral>(lexeme);
+            return CreateScope<IntegerLiteral>(lexeme);
         }
     public:
         int value;
+
+        static const Token::Type TokenType = Token::Type::INT_LITERAL;
     };
 
     struct FloatLiteral : public Token
@@ -85,12 +92,14 @@ namespace Tokens
             : Token(Token::Type::FLOAT_LITERAL, lexeme), value(std::stof(lexeme))
         {}
 
-        static std::unique_ptr<Token> Create(const std::string& lexeme)
+        static Scope<Token> Create(const std::string& lexeme)
         {
-            return std::make_unique<FloatLiteral>(lexeme);
+            return CreateScope<FloatLiteral>(lexeme);
         }
     public:
         float value;
+
+        static const Token::Type TokenType = Token::Type::FLOAT_LITERAL;
     };
 
     struct ColourLiteral : public Token
@@ -103,12 +112,14 @@ namespace Tokens
             ss >> value;
         }
 
-        static std::unique_ptr<Token> Create(const std::string& lexeme)
+        static Scope<Token> Create(const std::string& lexeme)
         {
-            return std::make_unique<ColourLiteral>(lexeme);
+            return CreateScope<ColourLiteral>(lexeme);
         }
     public:
         int value = 0;
+
+        static const Token::Type TokenType = Token::Type::COLOUR_LITERAL;
     };
 
     struct BooleanLiteral : public Token
@@ -118,51 +129,56 @@ namespace Tokens
         {
         }
 
-        static std::unique_ptr<Token> Create(const std::string& lexeme)
+        static Scope<Token> Create(const std::string& lexeme)
         {
-            return std::make_unique<BooleanLiteral>(lexeme);
+            return CreateScope<BooleanLiteral>(lexeme);
         }
     public:
         bool value = false;
+
+        static const Token::Type TokenType = Token::Type::BOOLEAN_LITERAL;
     };
 
-    struct Type : public Token
+    struct VarType : public Token
     {
-        enum class Name
+        enum class Type
         {
+            UNKNOWN = 0,
             FLOAT,
             INT,
             BOOL,
             COLOUR,
         };
 
-        Type(const std::string& lexeme)
-            : Token(Token::Type::TYPE, lexeme)
+        VarType(const std::string& lexeme)
+            : Token(Token::Type::VAR_TYPE, lexeme)
         {
             if (lexeme == "float")
             {
-                name = Name::FLOAT;
+                type = Type::FLOAT;
             }
             else if (lexeme == "int")
             {
-                name = Name::INT;
+                type = Type::INT;
             }
             else if (lexeme == "bool")
             {
-                name = Name::BOOL;
+                type = Type::BOOL;
             }
             else if (lexeme == "colour")
             {
-                name = Name::COLOUR;
+                type = Type::COLOUR;
             }
         }
 
-        static std::unique_ptr<Token> Create(const std::string& lexeme)
+        static Scope<Token> Create(const std::string& lexeme)
         {
-            return std::make_unique<Type>(lexeme);
+            return CreateScope<VarType>(lexeme);
         }
     public:
-        Name name;
+        Type type;
+
+        static const Token::Type TokenType = Token::Type::VAR_TYPE;
     };
 
     struct MultiplicativeOp : public Token
@@ -191,12 +207,14 @@ namespace Tokens
             }
         }
 
-        static std::unique_ptr<Token> Create(const std::string& lexeme)
+        static Scope<Token> Create(const std::string& lexeme)
         {
-            return std::make_unique<MultiplicativeOp>(lexeme);
+            return CreateScope<MultiplicativeOp>(lexeme);
         }
     public:
         Type type;
+
+        static const Token::Type TokenType = Token::Type::MULT_OP;
     };
 
     struct AdditiveOp : public Token
@@ -225,12 +243,14 @@ namespace Tokens
             }
         }
 
-        static std::unique_ptr<Token> Create(const std::string& lexeme)
+        static Scope<Token> Create(const std::string& lexeme)
         {
-            return std::make_unique<AdditiveOp>(lexeme);
+            return CreateScope<AdditiveOp>(lexeme);
         }
     public:
         Type type;
+
+        static const Token::Type TokenType = Token::Type::ADD_OP;
     };
 
     struct RelationalOp : public Token
@@ -265,12 +285,14 @@ namespace Tokens
             }
         }
 
-        static std::unique_ptr<Token> Create(const std::string& lexeme)
+        static Scope<Token> Create(const std::string& lexeme)
         {
-            return std::make_unique<RelationalOp>(lexeme);
+            return CreateScope<RelationalOp>(lexeme);
         }
     public:
         Type type;
+
+        static const Token::Type TokenType = Token::Type::REL_OP;
     };
 
     struct UnaryOp : public Token
@@ -286,21 +308,23 @@ namespace Tokens
             type = Type::NOT;
         }
 
-        static std::unique_ptr<Token> Create(const std::string& lexeme)
+        static Scope<Token> Create(const std::string& lexeme)
         {
-            return std::make_unique<UnaryOp>(lexeme);
+            return CreateScope<UnaryOp>(lexeme);
         }
     public:
         Type type;
+
+        static const Token::Type TokenType = Token::Type::UNARY_OP;
     };
 
     struct Keyword : public Token
     {
 #define KEYWORDS \
-        X(float, FLOAT, Type) \
-        X(int, INT, Type) \
-        X(bool, BOOL, Type) \
-        X(colour, COLOUR, Type) \
+        X(float, FLOAT, VarType) \
+        X(int, INT, VarType) \
+        X(bool, BOOL, VarType) \
+        X(colour, COLOUR, VarType) \
         X(true, TRUE, BooleanLiteral) \
         X(false, FALSE, BooleanLiteral) \
         X(and, AND, MultiplicativeOp) \
@@ -308,6 +332,7 @@ namespace Tokens
         X(not, NOT, UnaryOp) \
         X(let, LET, Keyword) \
         X(if, IF, Keyword) \
+        X(else, ELSE, Keyword) \
         X(for, FOR, Keyword) \
         X(while, WHILE, Keyword) \
         X(return, RETURN, Keyword) \
@@ -316,7 +341,7 @@ namespace Tokens
 
         enum class Type
         {
-#define X(keyword, name) name,
+#define X(keyword, name, _) name,
             KEYWORDS
 #undef X
         };
@@ -329,17 +354,19 @@ namespace Tokens
 #undef X
         }
 
-        static std::unique_ptr<Token> Create(const std::string& lexeme)
+        static Scope<Token> Create(const std::string& lexeme)
         {
-#define X(keyword, name, cls) if(lexeme == #keyword) { return std::make_unique<::Tokens::cls>(lexeme); }
+#define X(keyword, name, cls) if(lexeme == #keyword) { return CreateScope<::Tokens::cls>(lexeme); }
             KEYWORDS
 #undef X
-            //return std::make_unique<Keyword>(lexeme);
+            //return CreateScope<Keyword>(lexeme);
         }
     public:
         Type type;
 
         static const std::unordered_set<std::string> keywords;
+
+        static const Token::Type TokenType = Token::Type::KEYWORD;
     };
 
     struct Identifier : public Token
@@ -348,15 +375,17 @@ namespace Tokens
             : Token(Token::Type::IDENTIFIER, lexeme), name(lexeme)
         {}
 
-        static std::unique_ptr<Token> Create(const std::string& lexeme)
+        static Scope<Token> Create(const std::string& lexeme)
         {
             if (Keyword::keywords.contains(lexeme))
                 return Keyword::Create(lexeme);
 
-            return std::make_unique<Identifier>(lexeme);
+            return CreateScope<Identifier>(lexeme);
         }
     public:
         std::string name;
+
+        static const Token::Type TokenType = Token::Type::IDENTIFIER;
     };
 
     struct Punctuation : public Token
@@ -392,12 +421,14 @@ namespace Tokens
             }
         }
 
-        static std::unique_ptr<Token> Create(const std::string& lexeme)
+        static Scope<Token> Create(const std::string& lexeme)
         {
-            return std::make_unique<Punctuation>(lexeme);
+            return CreateScope<Punctuation>(lexeme);
         }
     public:
         Type type;
+
+        static const Token::Type TokenType = Token::Type::PUNCTUATION;
     };
 
     struct NewLine : public Token
@@ -407,10 +438,13 @@ namespace Tokens
         {
         }
 
-        static std::unique_ptr<Token> Create(const std::string& lexeme)
+        static Scope<Token> Create(const std::string& lexeme)
         {
-            return std::make_unique<NewLine>(lexeme);
+            return CreateScope<NewLine>(lexeme);
         }
+
+    public:
+        static const Token::Type TokenType = Token::Type::NEW_LINE;
     };
 
     struct Bracket : public Token
@@ -451,12 +485,14 @@ namespace Tokens
             }
         }
 
-        static std::unique_ptr<Token> Create(const std::string& lexeme)
+        static Scope<Token> Create(const std::string& lexeme)
         {
-            return std::make_unique<Bracket>(lexeme);
+            return CreateScope<Bracket>(lexeme);
         }
     public:
         Type type;
+
+        static const Token::Type TokenType = Token::Type::BRACKET;
     };
 
     struct Assignment : public Token
@@ -466,10 +502,13 @@ namespace Tokens
         {
         }
 
-        static std::unique_ptr<Token> Create(const std::string& lexeme)
+        static Scope<Token> Create(const std::string& lexeme)
         {
-            return std::make_unique<Assignment>(lexeme);
+            return CreateScope<Assignment>(lexeme);
         }
+
+    public:
+        static const Token::Type TokenType = Token::Type::ASSIGNMENT;
     };
 
     struct LineComment : public Token
@@ -479,10 +518,14 @@ namespace Tokens
         {
         }
 
-        static std::unique_ptr<Token> Create(const std::string& lexeme)
+        static Scope<Token> Create(const std::string& lexeme)
         {
-            return std::make_unique<LineComment>(lexeme);
+            return CreateScope<LineComment>(lexeme);
         }
+
+    public:
+        static const Token::Type TokenType = Token::Type::LINE_COMMENT;
+
     };
 
     struct BlockComment : public Token
@@ -492,13 +535,15 @@ namespace Tokens
         {
         }
 
-        static std::unique_ptr<Token> Create(const std::string& lexeme)
+        static Scope<Token> Create(const std::string& lexeme)
         {
-            return std::make_unique<BlockComment>(lexeme);
+            return CreateScope<BlockComment>(lexeme);
         }
 
     public:
         bool open;
+
+        static const Token::Type TokenType = Token::Type::BLOCK_COMMENT;
     };
 
     struct Builtin : public Token
@@ -528,18 +573,20 @@ namespace Tokens
 #undef X
         }
 
-        static std::unique_ptr<Token> Create(const std::string& lexeme)
+        static Scope<Token> Create(const std::string& lexeme)
         {
             if (builtinTypes.contains(lexeme))
             {
-                return std::make_unique<Builtin>(lexeme);
+                return CreateScope<Builtin>(lexeme);
             }
 
-            return std::make_unique<Token>(lexeme.length());
+            return CreateScope<Token>(lexeme.length());
         }
 
     public:
         Type type;
         static const std::unordered_set<std::string> builtinTypes;
+
+        static const Token::Type TokenType = Token::Type::BUILTIN;
     };
 }

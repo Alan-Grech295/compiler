@@ -3,6 +3,7 @@
 #include <fstream>
 
 #include "Lexer/Lexer.h"
+#include "Parser/Parser.h"
 
 
 int main()
@@ -24,13 +25,15 @@ int main()
 
     std::cout << fileText << std::endl;
 
-    int programIndex = 0;
-    std::vector<std::unique_ptr<Tokens::Token>> tokens{};
-
-    while (programIndex < fileText.length())
+    Parser parser{ };
+    Scope<ASTProgramNode> programAST;
+    try
     {
-        auto token = lexer.GetNextToken(fileText, programIndex, true, true);
-        tokens.push_back(std::move(token));
+        programAST = parser.Parse(fileText);
+    }
+    catch (Parser::SyntaxErrorException e)
+    {
+        std::cout << e.what() << std::endl;
     }
 
     int a = 0;

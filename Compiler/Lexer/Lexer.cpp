@@ -9,9 +9,9 @@ Lexer::Lexer()
     InitTable();
 }
 
-std::unique_ptr<Token> Lexer::PeekNextToken(const std::string& program, int& index, bool excludeWhitespace, bool excludeComments)
+Scope<Token> Lexer::PeekNextToken(const std::string& program, int& index, bool excludeWhitespace, bool excludeComments)
 {
-    std::unique_ptr<Token> nextToken = GetNextToken(program, index);
+    Scope<Token> nextToken = GetNextToken(program, index);
     bool inLineComment = nextToken->type == Token::Type::LINE_COMMENT;
     bool inBlockComment = nextToken->type == Token::Type::BLOCK_COMMENT && nextToken->As<BlockComment>().open;
 
@@ -45,14 +45,14 @@ std::unique_ptr<Token> Lexer::PeekNextToken(const std::string& program, int& ind
     return std::move(nextToken);
 }
 
-std::unique_ptr<Token> Lexer::GetNextToken(const std::string& program, int& index, bool excludeWhitespace, bool excludeComments)
+Scope<Token> Lexer::GetNextToken(const std::string& program, int& index, bool excludeWhitespace, bool excludeComments)
 {
     auto token = PeekNextToken(program, index, excludeWhitespace, excludeComments);
     index += token->lexemeLength;
     return std::move(token);
 }
 
-std::unique_ptr<Token> Lexer::GetNextToken(const std::string& program, int index)
+Scope<Token> Lexer::GetNextToken(const std::string& program, int index)
 {
     if (index >= program.length())
         return std::move(std::make_unique<Token>(Token::Type::END_OF_FILE, " "));
@@ -204,7 +204,7 @@ void Lexer::InitTable()
 
 }
 
-std::unique_ptr<Token> Lexer::GetTokenByFinalState(int state, const std::string& lexeme)
+Scope<Token> Lexer::GetTokenByFinalState(int state, const std::string& lexeme)
 {
     switch (state)
     {
