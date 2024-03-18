@@ -7,4 +7,10 @@ namespace Tokens
         KEYWORDS
     };
 #undef X
+
+#define X(name, _) #name,
+    const std::unordered_set<std::string> Builtin::builtinTypes = {
+        BUILTIN_TYPES
+    };
+#undef X
 }

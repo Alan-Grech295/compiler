@@ -9,7 +9,7 @@ Lexer::Lexer()
     InitTable();
 }
 
-std::unique_ptr<Token> Lexer::GetNextToken(const std::string& program, int& index, bool excludeWhitespace, bool excludeComments)
+std::unique_ptr<Token> Lexer::PeekNextToken(const std::string& program, int& index, bool excludeWhitespace, bool excludeComments)
 {
     std::unique_ptr<Token> nextToken = GetNextToken(program, index);
     bool inLineComment = nextToken->type == Token::Type::LINE_COMMENT;
@@ -43,6 +43,13 @@ std::unique_ptr<Token> Lexer::GetNextToken(const std::string& program, int& inde
     }
 
     return std::move(nextToken);
+}
+
+std::unique_ptr<Token> Lexer::GetNextToken(const std::string& program, int& index, bool excludeWhitespace, bool excludeComments)
+{
+    auto token = PeekNextToken(program, index, excludeWhitespace, excludeComments);
+    index += token->lexemeLength;
+    return std::move(token);
 }
 
 std::unique_ptr<Token> Lexer::GetNextToken(const std::string& program, int index)
@@ -182,6 +189,18 @@ void Lexer::InitTable()
         transitions[32][(int)Lexeme::DIGIT] = 33;
     #pragma endregion
 
+    #pragma region Builtin
+        transitions[0][(int)Lexeme::UNDERSCORE] = 35;
+        transitions[35][(int)Lexeme::UNDERSCORE] = 36;
+
+        transitions[36][(int)Lexeme::UNDERSCORE] = 37;
+        transitions[36][(int)Lexeme::HEX_LETTER] = 37;
+        transitions[36][(int)Lexeme::LETTER] = 37;
+
+        transitions[37][(int)Lexeme::UNDERSCORE] = 37;
+        transitions[37][(int)Lexeme::HEX_LETTER] = 37;
+        transitions[37][(int)Lexeme::LETTER] = 37;
+    #pragma endregion
 
 }
 

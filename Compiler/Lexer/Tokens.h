@@ -29,6 +29,7 @@ namespace Tokens
             LINE_COMMENT,
             BLOCK_COMMENT,
             NEW_LINE, 
+            BUILTIN,
             END_OF_FILE,
         };
 
@@ -498,5 +499,47 @@ namespace Tokens
 
     public:
         bool open;
+    };
+
+    struct Builtin : public Token
+    {
+#define BUILTIN_TYPES \
+        X(__width, WIDTH) \
+        X(__height, HEIGHT) \
+        X(__read, READ) \
+        X(__random_int, RANDOM_INT) \
+        X(__print, PRINT) \
+        X(__delay, DELAY) \
+        X(__write_box, WRITE_BOX) \
+        X(__write, WRITE) 
+
+        enum class Type
+        {
+#define X(keyword, name) name,
+            BUILTIN_TYPES
+#undef X
+        };
+
+        Builtin(const std::string& lexeme)
+            : Token(Token::Type::BUILTIN, lexeme)
+        {
+#define X(keyword, name) if(lexeme == #keyword) { type = Type::name; }
+            BUILTIN_TYPES
+#undef X
+        }
+
+        static std::unique_ptr<Token> Create(const std::string& lexeme)
+        {
+            if (builtinTypes.contains(lexeme))
+            {
+                return std::make_unique<Builtin>(lexeme);
+            }
+
+            return std::make_unique<Token>(lexeme.length());
+        }
+
+    public:
+        Type type;
+        static const std::unordered_set<std::string> builtinTypes;
     };
 }

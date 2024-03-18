@@ -81,6 +81,7 @@ public:
         X(Bracket, 22) \
         X(Bracket, 23) \
         X(Whitespace, 34) \
+        X(Builtin, 37) \
         X(NewLine, 26) 
 
 public:
@@ -92,6 +93,8 @@ public:
     }
 
     std::unique_ptr<Token> GetNextToken(const std::string& program, int& index, bool excludeWhitespace, bool excludeComments);
+
+    std::unique_ptr<Token> PeekNextToken(const std::string& program, int& index, bool excludeWhitespace, bool excludeComments);
 
     std::unique_ptr<Token> GetNextToken(const std::string& program, int index);
 
@@ -114,7 +117,7 @@ private:
     Lexeme CatChar(char c);
 
 private:
-    const int NUM_STATES = 35;
+    const int NUM_STATES = 38;
     Table<int> transitions;
 #define X(cls, state) + 1
     static const int NUM_FINAL_STATES = 0 TOKEN_FINAL_STATE;

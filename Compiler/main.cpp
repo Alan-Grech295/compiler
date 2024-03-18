@@ -11,7 +11,7 @@ int main()
 
     std::ifstream file;
     std::string line;
-    file.open("src/example - full.txt");
+    file.open("src/example.txt");
     std::string fileText;
     if (file.is_open())
     {
@@ -30,7 +30,6 @@ int main()
     while (programIndex < fileText.length())
     {
         auto token = lexer.GetNextToken(fileText, programIndex, true, true);
-        programIndex += token->lexemeLength;
         tokens.push_back(std::move(token));
     }
 

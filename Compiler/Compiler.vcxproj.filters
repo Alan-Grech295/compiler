@@ -27,6 +27,12 @@
     <ClCompile Include="Lexer\Tokens.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Parser\Parser.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Parser\ASTNodes.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Lexer\Lexer.h">
@@ -38,8 +44,17 @@
     <ClInclude Include="Lexer\Tokens.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="Parser\Parser.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Parser\ASTNodes.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="src\example.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="src\example - full.txt" />
   </ItemGroup>
 </Project>

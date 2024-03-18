@@ -46,3 +46,29 @@ fun Red() -> colour {
 fun IntToCol(x: int) -> colour {
     return x as colour;
 }
+
+fun Race(p1 c:colour , p2 c:colour , score max: int)?> int {
+    let p1 score: int = 0; 
+    let p2 score: int = 0;
+
+    //while (Max(p1_score, p2_score) < score_max) //Alternative loop 
+    while ((p1_score < score_max) and (p2_score < score_max)) {
+        let p1_toss: int = __random_int 1000; 
+        let p2_toss: int = __random_int 1000;
+
+        if (p1_toss>p2_toss) { 
+            p1_score = p1_score + 1; 
+            __write 1, p1_score, p1_c; 
+        } else { 
+            p2_score = p2_score + 1; 
+            __write 2, p2_score, p2_c; 
+        } 
+        __delay 100; 
+    } 
+    
+    if (p2_score > p1_score) { 
+        return 2; 
+    } 
+    return 1; 
+}
+
