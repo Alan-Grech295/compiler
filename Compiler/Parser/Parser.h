@@ -46,6 +46,7 @@ private:
     Scope<ASTExpressionNode> ParseSimpleExpression();
     Scope<ASTExpressionNode> ParseTerm();
     Scope<ASTExpressionNode> ParseFactor();
+    Scope<ASTExpressionNode> ParseLiteral();
 
     Scope<ASTReturnNode> ParseReturnStatement();
 
@@ -54,10 +55,17 @@ private:
     Scope<ASTWhileNode> ParseWhileLoop();
     Scope<ASTForNode> ParseForLoop();
 
+    Scope<ASTWidthNode> ParseWidth();
+    Scope<ASTHeightNode> ParseHeight();
+    Scope<ASTReadNode> ParseRead();
+    Scope<ASTRandIntNode> ParseRandInt();
+
     Scope<ASTPrintNode> ParsePrint();
     Scope<ASTDelayNode> ParseDelay();
     Scope<ASTWriteNode> ParseWrite();
     Scope<ASTWriteBoxNode> ParseWriteBox();
+
+    Scope<ASTFuncCallNode> ParseFunctionCall();
 
     ASTFunctionNode::Param ParseParam();
 
@@ -66,6 +74,7 @@ private:
     inline Scope<Token> GetNextToken() { pastProgramIndex = programIndex; return lexer.GetNextToken(program, programIndex, true, true); }
     inline Scope<Token> PeekNextToken() { return lexer.PeekNextToken(program, programIndex, true, true); }
     inline void JumpToken(int tokenLength) { pastProgramIndex = programIndex; programIndex += tokenLength; }
+    inline void UndoToken(int tokenLength) { programIndex -= tokenLength; pastProgramIndex = programIndex; }
 private:
     Lexer lexer{};
     std::string program;

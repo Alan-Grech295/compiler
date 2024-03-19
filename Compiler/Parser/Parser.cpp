@@ -194,6 +194,14 @@ Scope<ASTExpressionNode> Parser::ParseExpression(bool subExpr)
         nextToken = PeekNextToken();
     }
 
+    if (CHECK_SUB_TYPE(nextToken, Keyword, type == Keyword::Type::AS))
+    {
+        JumpToken(nextToken->lexemeLength);
+        nextToken = GetNextToken();
+        ASSERT(nextToken->type == Token::Type::VAR_TYPE);
+        curExpr = CreateScope<ASTCastNode>(nextToken->As<VarType>().type, std::move(curExpr));
+    }
+
     ASSERT(!subExpr || (subExpr && CHECK_SUB_TYPE(nextToken, Bracket, type == Bracket::Type::CLOSE_PAREN)));
     if (subExpr)
         JumpToken(nextToken->lexemeLength);
@@ -242,17 +250,37 @@ Scope<ASTExpressionNode> Parser::ParseFactor()
     {
         // Literals
     case Token::Type::INT_LITERAL:
-        return CreateScope<ASTIntLiteralNode>(nextToken->As<IntegerLiteral>().value);
     case Token::Type::FLOAT_LITERAL:
-        return CreateScope<ASTFloatLiteralNode>(nextToken->As<FloatLiteral>().value);
     case Token::Type::BOOLEAN_LITERAL:
-        return CreateScope<ASTBooleanLiteralNode>(nextToken->As<BooleanLiteral>().value);
     case Token::Type::COLOUR_LITERAL:
-        return CreateScope<ASTColourLiteralNode>(nextToken->As<ColourLiteral>().value);
+        UndoToken(nextToken->lexemeLength);
+        return ParseLiteral();
+
+    case Token::Type::BUILTIN:
+    {
+        UndoToken(nextToken->lexemeLength);
+        switch (nextToken->As<Builtin>().type)
+        {
+        case Builtin::Type::WIDTH:
+        case Builtin::Type::HEIGHT:
+        case Builtin::Type::READ:
+            return ParseLiteral();
+        case Builtin::Type::RANDOM_INT:
+            return ParseRandInt();
+        }
+        break;
+    }
 
         // Identifier
     case Token::Type::IDENTIFIER:
     {
+        auto after = PeekNextToken();
+        if (CHECK_SUB_TYPE(after, Bracket, type == Bracket::Type::OPEN_PAREN))
+        {
+            UndoToken(nextToken->lexemeLength);
+            return ParseFunctionCall();
+        }
+
         Identifier& identifierNode = nextToken->As<Identifier>();
         return CreateScope<ASTIdentifierNode>(identifierNode.name);
     }
@@ -275,6 +303,39 @@ Scope<ASTExpressionNode> Parser::ParseFactor()
             return CreateScope<ASTNegateNode>(std::move(ParseExpression()));
         }
         break;
+    }
+
+    throw SyntaxErrorException(program, programIndex);
+}
+
+Scope<ASTExpressionNode> Parser::ParseLiteral()
+{
+    auto nextToken = GetNextToken();
+    switch (nextToken->type)
+    {
+        // Literals
+    case Token::Type::INT_LITERAL:
+        return CreateScope<ASTIntLiteralNode>(nextToken->As<IntegerLiteral>().value);
+    case Token::Type::FLOAT_LITERAL:
+        return CreateScope<ASTFloatLiteralNode>(nextToken->As<FloatLiteral>().value);
+    case Token::Type::BOOLEAN_LITERAL:
+        return CreateScope<ASTBooleanLiteralNode>(nextToken->As<BooleanLiteral>().value);
+    case Token::Type::COLOUR_LITERAL:
+        return CreateScope<ASTColourLiteralNode>(nextToken->As<ColourLiteral>().value);
+
+    case Token::Type::BUILTIN:
+    {
+        UndoToken(nextToken->lexemeLength);
+        switch (nextToken->As<Builtin>().type)
+        {
+        case Builtin::Type::WIDTH:
+            return ParseWidth();
+        case Builtin::Type::HEIGHT:
+            return ParseHeight();
+        case Builtin::Type::READ:
+            return ParseRead();
+        }
+    }
     }
 
     throw SyntaxErrorException(program, programIndex);
@@ -382,6 +443,47 @@ Scope<ASTForNode> Parser::ParseForLoop()
     return CreateScope<ASTForNode>(std::move(varDecl), std::move(expr), std::move(assignment), std::move(blockNode));
 }
 
+Scope<ASTWidthNode> Parser::ParseWidth()
+{
+    auto nextToken = GetNextToken();
+    ASSERT(CHECK_SUB_TYPE(nextToken, Builtin, type == Builtin::Type::WIDTH));
+
+    return CreateScope<ASTWidthNode>();
+}
+
+Scope<ASTHeightNode> Parser::ParseHeight()
+{
+    auto nextToken = GetNextToken();
+    ASSERT(CHECK_SUB_TYPE(nextToken, Builtin, type == Builtin::Type::HEIGHT));
+
+    return CreateScope<ASTHeightNode>();
+}
+
+Scope<ASTReadNode> Parser::ParseRead()
+{
+    auto nextToken = GetNextToken();
+    ASSERT(CHECK_SUB_TYPE(nextToken, Builtin, type == Builtin::Type::READ));
+
+    auto exprA = ParseExpression();
+
+    nextToken = GetNextToken();
+    ASSERT(CHECK_SUB_TYPE(nextToken, Punctuation, type == Punctuation::Type::COMMA));
+
+    auto exprB = ParseExpression();
+
+    return CreateScope<ASTReadNode>(std::move(exprA), std::move(exprB));
+}
+
+Scope<ASTRandIntNode> Parser::ParseRandInt()
+{
+    auto nextToken = GetNextToken();
+    ASSERT(CHECK_SUB_TYPE(nextToken, Builtin, type == Builtin::Type::RANDOM_INT));
+
+    auto max = ParseExpression();
+
+    return CreateScope<ASTRandIntNode>(std::move(max));
+}
+
 Scope<ASTPrintNode> Parser::ParsePrint()
 {
     auto nextToken = GetNextToken();
@@ -450,6 +552,28 @@ Scope<ASTWriteBoxNode> Parser::ParseWriteBox()
     auto colour = ParseExpression();
 
     return CreateScope<ASTWriteBoxNode>(std::move(x), std::move(y), std::move(w), std::move(h), std::move(colour));
+}
+
+Scope<ASTFuncCallNode> Parser::ParseFunctionCall()
+{
+    auto nextToken = GetNextToken();
+    ASSERT(nextToken->type == Token::Type::IDENTIFIER);
+
+    Scope<ASTFuncCallNode> funcCall = CreateScope<ASTFuncCallNode>(nextToken->As<Identifier>().name);
+
+    nextToken = GetNextToken();
+    ASSERT(CHECK_SUB_TYPE(nextToken, Bracket, type == Bracket::Type::OPEN_PAREN));
+
+    nextToken = PeekNextToken();
+    while (!CHECK_SUB_TYPE(nextToken, Bracket, type == Bracket::Type::CLOSE_PAREN))
+    {
+        funcCall->AddArg(std::move(ParseExpression()));
+        nextToken = GetNextToken();
+        ASSERT(CHECK_SUB_TYPE(nextToken, Bracket, type == Bracket::Type::CLOSE_PAREN) ||
+               CHECK_SUB_TYPE(nextToken, Punctuation, type == Punctuation::Type::COMMA));
+    }
+
+    return funcCall;
 }
 
 ASTFunctionNode::Param Parser::ParseParam()

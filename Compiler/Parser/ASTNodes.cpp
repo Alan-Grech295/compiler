@@ -161,3 +161,28 @@ ASTWriteBoxNode::ASTWriteBoxNode(Scope<ASTExpressionNode> x, Scope<ASTExpression
     : x(std::move(x)), y(std::move(y)), w(std::move(w)), h(std::move(h)), colour(std::move(colour))
 {
 }
+
+ASTReadNode::ASTReadNode(Scope<ASTExpressionNode> a, Scope<ASTExpressionNode> b)
+    : a(std::move(a)), b(std::move(b))
+{
+}
+
+ASTRandIntNode::ASTRandIntNode(Scope<ASTExpressionNode> max)
+    : max(std::move(max))
+{
+}
+
+ASTFuncCallNode::ASTFuncCallNode(const std::string& funcName)
+    : funcName(funcName), args()
+{
+}
+
+void ASTFuncCallNode::AddArg(Scope<ASTExpressionNode> arg)
+{
+    args.push_back(std::move(arg));
+}
+
+ASTCastNode::ASTCastNode(Tokens::VarType::Type castType, std::unique_ptr<ASTExpressionNode> expr)
+    : castType(castType), expr(std::move(expr))
+{
+}

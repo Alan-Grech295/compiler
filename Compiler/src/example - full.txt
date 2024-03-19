@@ -47,9 +47,9 @@ fun IntToCol(x: int) -> colour {
     return x as colour;
 }
 
-fun Race(p1 c:colour , p2 c:colour , score max: int)?> int {
-    let p1 score: int = 0; 
-    let p2 score: int = 0;
+fun Race(p1_c:colour , p2_c:colour , score_max: int) -> int {
+    let p1_score: int = 0; 
+    let p2_score: int = 0;
 
     //while (Max(p1_score, p2_score) < score_max) //Alternative loop 
     while ((p1_score < score_max) and (p2_score < score_max)) {

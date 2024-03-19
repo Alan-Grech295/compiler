@@ -40,3 +40,9 @@ __print 1 + 2;
 __delay 1000 * 2;
 __write 1, 2, #FFFF00;
 __write_box 3, 4, 1, 2, #FF00FF;
+
+a = __random_int 10;
+a = __width + __height * __read 1, 2;
+
+a = function(param1, 1 + 2 * 3);
+a = 1 + 2

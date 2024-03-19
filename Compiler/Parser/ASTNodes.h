@@ -132,6 +132,15 @@ public:
     std::unique_ptr<ASTExpressionNode> expr;
 };
 
+class ASTCastNode : public ASTExpressionNode
+{
+public:
+    ASTCastNode(Tokens::VarType::Type castType, std::unique_ptr<ASTExpressionNode> expr);
+public:
+    Tokens::VarType::Type castType;
+    std::unique_ptr<ASTExpressionNode> expr;
+};
+
 class ASTAssignmentNode : public ASTNode
 {
 public:
@@ -241,4 +250,44 @@ public:
     Scope<ASTExpressionNode> w;
     Scope<ASTExpressionNode> h;
     Scope<ASTExpressionNode> colour;
+};
+
+class ASTWidthNode : public ASTExpressionNode
+{
+public:
+    ASTWidthNode() {}
+};
+
+class ASTHeightNode : public ASTExpressionNode
+{
+public:
+    ASTHeightNode() {}
+};
+
+class ASTReadNode : public ASTExpressionNode
+{
+public:
+    ASTReadNode(Scope<ASTExpressionNode> a, Scope<ASTExpressionNode> b);
+public:
+    Scope<ASTExpressionNode> a;
+    Scope<ASTExpressionNode> b;
+};
+
+class ASTRandIntNode : public ASTExpressionNode
+{
+public:
+    ASTRandIntNode(Scope<ASTExpressionNode> max);
+public:
+    Scope<ASTExpressionNode> max;
+};
+
+class ASTFuncCallNode : public ASTExpressionNode
+{
+public:
+    ASTFuncCallNode(const std::string& funcName);
+
+    void AddArg(Scope< ASTExpressionNode> arg);
+public:
+    std::string funcName;
+    std::vector<Scope<ASTExpressionNode>> args;
 };
