@@ -73,15 +73,66 @@ Scope<ASTNode> Parser::ParseStatement()
                 {
                     return std::move(ParseFunctionDecl());
                 }
+
+                case Keyword::Type::WHILE:
+                {
+                    return std::move(ParseWhileLoop());
+                }
+
+                case Keyword::Type::FOR:
+                {
+                    return std::move(ParseForLoop());
+                }
             }
             break;
         }
 
         case Token::Type::IDENTIFIER:
+        {
             auto assignment = ParseAssignment();
             token = GetNextToken();
             ASSERT(CHECK_SUB_TYPE(token, Punctuation, type == Punctuation::Type::SEMICOLON));
             return std::move(assignment);
+        }
+
+        case Token::Type::BUILTIN:
+        {
+            Builtin& builtinToken = token->As<Builtin>();
+            switch (builtinToken.type)
+            {
+                case Builtin::Type::PRINT:
+                {
+                    auto print = ParsePrint();
+                    token = GetNextToken();
+                    ASSERT(CHECK_SUB_TYPE(token, Punctuation, type == Punctuation::Type::SEMICOLON));
+                    return std::move(print);
+                }
+
+                case Builtin::Type::DELAY:
+                {
+                    auto delay = ParseDelay();
+                    token = GetNextToken();
+                    ASSERT(CHECK_SUB_TYPE(token, Punctuation, type == Punctuation::Type::SEMICOLON));
+                    return std::move(delay);
+                }
+
+                case Builtin::Type::WRITE:
+                {
+                    auto write = ParseWrite();
+                    token = GetNextToken();
+                    ASSERT(CHECK_SUB_TYPE(token, Punctuation, type == Punctuation::Type::SEMICOLON));
+                    return std::move(write);
+                }
+
+                case Builtin::Type::WRITE_BOX:
+                {
+                    auto writeBox = ParseWriteBox();
+                    token = GetNextToken();
+                    ASSERT(CHECK_SUB_TYPE(token, Punctuation, type == Punctuation::Type::SEMICOLON));
+                    return std::move(writeBox);
+                }
+            }
+        }
     }
 
 
@@ -143,7 +194,7 @@ Scope<ASTExpressionNode> Parser::ParseExpression(bool subExpr)
         nextToken = PeekNextToken();
     }
 
-    ASSERT(!(subExpr ^ CHECK_SUB_TYPE(nextToken, Bracket, type == Bracket::Type::CLOSE_PAREN)));
+    ASSERT(!subExpr || (subExpr && CHECK_SUB_TYPE(nextToken, Bracket, type == Bracket::Type::CLOSE_PAREN)));
     if (subExpr)
         JumpToken(nextToken->lexemeLength);
 
@@ -276,6 +327,129 @@ Scope<ASTFunctionNode> Parser::ParseFunctionDecl()
     auto blockNode = ParseBlock();
 
     return CreateScope<ASTFunctionNode>(funName, params, retType, std::move(blockNode));
+}
+
+Scope<ASTWhileNode> Parser::ParseWhileLoop()
+{
+    auto nextToken = GetNextToken();
+    ASSERT(CHECK_SUB_TYPE(nextToken, Keyword, type == Keyword::Type::WHILE));
+
+    nextToken = PeekNextToken();
+    ASSERT(CHECK_SUB_TYPE(nextToken, Bracket, type == Bracket::Type::OPEN_PAREN));
+
+    auto expr = ParseExpression();
+
+    auto blockNode = ParseBlock();
+
+    return CreateScope<ASTWhileNode>(std::move(expr), std::move(blockNode));
+}
+
+Scope<ASTForNode> Parser::ParseForLoop()
+{
+    auto nextToken = GetNextToken();
+    ASSERT(CHECK_SUB_TYPE(nextToken, Keyword, type == Keyword::Type::FOR));
+
+    nextToken = GetNextToken();
+    ASSERT(CHECK_SUB_TYPE(nextToken, Bracket, type == Bracket::Type::OPEN_PAREN));
+
+    nextToken = PeekNextToken();
+    Scope<ASTVarDeclNode> varDecl = nullptr;
+    if (!CHECK_SUB_TYPE(nextToken, Punctuation, type == Punctuation::Type::SEMICOLON))
+    {
+        varDecl = ParseVariableDeclaration();
+    }
+
+    nextToken = GetNextToken();
+    ASSERT(CHECK_SUB_TYPE(nextToken, Punctuation, type == Punctuation::Type::SEMICOLON));
+
+    Scope<ASTExpressionNode> expr = ParseExpression();
+
+    nextToken = GetNextToken();
+    ASSERT(CHECK_SUB_TYPE(nextToken, Punctuation, type == Punctuation::Type::SEMICOLON));
+
+    nextToken = PeekNextToken();
+    Scope<ASTAssignmentNode> assignment = nullptr;
+    if (!CHECK_SUB_TYPE(nextToken, Bracket, type == Bracket::Type::CLOSE_PAREN))
+    {
+        assignment = ParseAssignment();
+    }
+
+    nextToken = GetNextToken();
+    ASSERT(CHECK_SUB_TYPE(nextToken, Bracket, type == Bracket::Type::CLOSE_PAREN));
+
+    auto blockNode = ParseBlock();
+
+    return CreateScope<ASTForNode>(std::move(varDecl), std::move(expr), std::move(assignment), std::move(blockNode));
+}
+
+Scope<ASTPrintNode> Parser::ParsePrint()
+{
+    auto nextToken = GetNextToken();
+    ASSERT(CHECK_SUB_TYPE(nextToken, Builtin, type == Builtin::Type::PRINT));
+
+    auto expr = ParseExpression();
+
+    return CreateScope<ASTPrintNode>(std::move(expr));
+}
+
+Scope<ASTDelayNode> Parser::ParseDelay()
+{
+    auto nextToken = GetNextToken();
+    ASSERT(CHECK_SUB_TYPE(nextToken, Builtin, type == Builtin::Type::DELAY));
+
+    auto expr = ParseExpression();
+
+    return CreateScope<ASTDelayNode>(std::move(expr));
+}
+
+Scope<ASTWriteNode> Parser::ParseWrite()
+{
+    auto nextToken = GetNextToken();
+    ASSERT(CHECK_SUB_TYPE(nextToken, Builtin, type == Builtin::Type::WRITE));
+
+    auto x = ParseExpression();
+
+    nextToken = GetNextToken();
+    ASSERT(CHECK_SUB_TYPE(nextToken, Punctuation, type == Punctuation::Type::COMMA));
+
+    auto y = ParseExpression();
+
+    nextToken = GetNextToken();
+    ASSERT(CHECK_SUB_TYPE(nextToken, Punctuation, type == Punctuation::Type::COMMA));
+
+    auto colour = ParseExpression();
+
+    return CreateScope<ASTWriteNode>(std::move(x), std::move(y), std::move(colour));
+}
+
+Scope<ASTWriteBoxNode> Parser::ParseWriteBox()
+{
+    auto nextToken = GetNextToken();
+    ASSERT(CHECK_SUB_TYPE(nextToken, Builtin, type == Builtin::Type::WRITE_BOX));
+
+    auto x = ParseExpression();
+
+    nextToken = GetNextToken();
+    ASSERT(CHECK_SUB_TYPE(nextToken, Punctuation, type == Punctuation::Type::COMMA));
+
+    auto y = ParseExpression();
+
+    nextToken = GetNextToken();
+    ASSERT(CHECK_SUB_TYPE(nextToken, Punctuation, type == Punctuation::Type::COMMA));
+
+    auto w = ParseExpression();
+
+    nextToken = GetNextToken();
+    ASSERT(CHECK_SUB_TYPE(nextToken, Punctuation, type == Punctuation::Type::COMMA));
+
+    auto h = ParseExpression();
+
+    nextToken = GetNextToken();
+    ASSERT(CHECK_SUB_TYPE(nextToken, Punctuation, type == Punctuation::Type::COMMA));
+
+    auto colour = ParseExpression();
+
+    return CreateScope<ASTWriteBoxNode>(std::move(x), std::move(y), std::move(w), std::move(h), std::move(colour));
 }
 
 ASTFunctionNode::Param Parser::ParseParam()

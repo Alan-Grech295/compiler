@@ -184,3 +184,61 @@ public:
     Tokens::VarType::Type returnType;
     Scope<ASTBlockNode> blockNode;
 };
+
+class ASTWhileNode : public ASTNode
+{
+public:
+    ASTWhileNode(Scope<ASTExpressionNode> expr, Scope<ASTBlockNode> blockNode);
+public:
+    Scope<ASTExpressionNode> expr;
+    Scope<ASTBlockNode> blockNode;
+};
+
+class ASTForNode : public ASTNode
+{
+public:
+    ASTForNode(Scope<ASTVarDeclNode> variableDecl, Scope<ASTExpressionNode> expr, Scope<ASTAssignmentNode> assignment, Scope<ASTBlockNode> blockNode);
+public:
+    Scope<ASTVarDeclNode> variableDecl;
+    Scope<ASTExpressionNode> expr;
+    Scope<ASTAssignmentNode> assignment;
+    Scope<ASTBlockNode> blockNode;
+};
+
+class ASTPrintNode : public ASTNode
+{
+public:
+    ASTPrintNode(Scope<ASTExpressionNode> expr);
+public:
+    Scope<ASTExpressionNode> expr;
+};
+
+class ASTDelayNode : public ASTNode
+{
+public:
+    ASTDelayNode(Scope<ASTExpressionNode> delayExpr);
+public:
+    Scope<ASTExpressionNode> delayExpr;
+};
+
+class ASTWriteNode : public ASTNode
+{
+public:
+    ASTWriteNode(Scope<ASTExpressionNode> x, Scope<ASTExpressionNode> y, Scope<ASTExpressionNode> colour);
+public:
+    Scope<ASTExpressionNode> x;
+    Scope<ASTExpressionNode> y;
+    Scope<ASTExpressionNode> colour;
+};
+
+class ASTWriteBoxNode : public ASTNode
+{
+public:
+    ASTWriteBoxNode(Scope<ASTExpressionNode> x, Scope<ASTExpressionNode> y, Scope<ASTExpressionNode> w, Scope<ASTExpressionNode> h, Scope<ASTExpressionNode> colour);
+public:
+    Scope<ASTExpressionNode> x;
+    Scope<ASTExpressionNode> y;
+    Scope<ASTExpressionNode> w;
+    Scope<ASTExpressionNode> h;
+    Scope<ASTExpressionNode> colour;
+};

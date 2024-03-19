@@ -51,6 +51,14 @@ private:
 
     Scope<ASTFunctionNode> ParseFunctionDecl();
 
+    Scope<ASTWhileNode> ParseWhileLoop();
+    Scope<ASTForNode> ParseForLoop();
+
+    Scope<ASTPrintNode> ParsePrint();
+    Scope<ASTDelayNode> ParseDelay();
+    Scope<ASTWriteNode> ParseWrite();
+    Scope<ASTWriteBoxNode> ParseWriteBox();
+
     ASTFunctionNode::Param ParseParam();
 
     Scope<ASTDecisionNode> ParseIfStatement();

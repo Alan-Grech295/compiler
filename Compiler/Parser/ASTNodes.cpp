@@ -131,3 +131,33 @@ ASTFunctionNode::ASTFunctionNode(const std::string& name, const std::vector<Para
     : name(name), params(params), returnType(returnType), blockNode(std::move(blockNode))
 {
 }
+
+ASTWhileNode::ASTWhileNode(Scope<ASTExpressionNode> expr, Scope<ASTBlockNode> blockNode)
+    : expr(std::move(expr)), blockNode(std::move(blockNode))
+{
+}
+
+ASTForNode::ASTForNode(Scope<ASTVarDeclNode> variableDecl, Scope<ASTExpressionNode> expr, Scope<ASTAssignmentNode> assignment, Scope<ASTBlockNode> blockNode)
+    : variableDecl(std::move(variableDecl)), expr(std::move(expr)), assignment(std::move(assignment)), blockNode(std::move(blockNode))
+{
+}
+
+ASTPrintNode::ASTPrintNode(Scope<ASTExpressionNode> expr)
+    : expr(std::move(expr))
+{
+}
+
+ASTDelayNode::ASTDelayNode(Scope<ASTExpressionNode> delayExpr)
+    : delayExpr(std::move(delayExpr))
+{
+}
+
+ASTWriteNode::ASTWriteNode(Scope<ASTExpressionNode> x, Scope<ASTExpressionNode> y, Scope<ASTExpressionNode> colour)
+    : x(std::move(x)), y(std::move(y)), colour(std::move(colour))
+{
+}
+
+ASTWriteBoxNode::ASTWriteBoxNode(Scope<ASTExpressionNode> x, Scope<ASTExpressionNode> y, Scope<ASTExpressionNode> w, Scope<ASTExpressionNode> h, Scope<ASTExpressionNode> colour)
+    : x(std::move(x)), y(std::move(y)), w(std::move(w)), h(std::move(h)), colour(std::move(colour))
+{
+}

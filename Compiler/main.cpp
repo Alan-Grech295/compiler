@@ -14,16 +14,20 @@ int main()
     std::string line;
     file.open("src/example.txt");
     std::string fileText;
+    std::string fileTextWithLines;
     if (file.is_open())
     {
+        int lineNo = 1;
         while (std::getline(file, line))
         {
             fileText += line + "\n";
+            fileTextWithLines += std::to_string(lineNo) + ". " + line + "\n";
+            lineNo++;
         }
         file.close();
     }
 
-    std::cout << fileText << std::endl;
+    std::cout << fileTextWithLines << std::endl;
 
     Parser parser{ };
     Scope<ASTProgramNode> programAST;

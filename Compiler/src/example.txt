@@ -18,3 +18,25 @@ fun Max(x:int, y:int) -> int {
     if (y > m) { m = y; }
     return m;
 }
+
+while(a == 2){
+    let g: int = 0;
+    g = g + 1;
+}
+
+for(let i: int = 0; i < 10; i = i + 1){
+    // Do something here
+}
+
+for(; i < 10; i = i + 1){
+    // Do something here
+}
+
+for(; i < 10;){
+    // Do something here
+}
+
+__print 1 + 2;
+__delay 1000 * 2;
+__write 1, 2, #FFFF00;
+__write_box 3, 4, 1, 2, #FF00FF;
