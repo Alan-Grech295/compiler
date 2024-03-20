@@ -162,8 +162,8 @@ ASTWriteBoxNode::ASTWriteBoxNode(Scope<ASTExpressionNode> x, Scope<ASTExpression
 {
 }
 
-ASTReadNode::ASTReadNode(Scope<ASTExpressionNode> a, Scope<ASTExpressionNode> b)
-    : a(std::move(a)), b(std::move(b))
+ASTReadNode::ASTReadNode(Scope<ASTExpressionNode> x, Scope<ASTExpressionNode> y)
+    : x(std::move(x)), y(std::move(y))
 {
 }
 

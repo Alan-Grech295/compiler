@@ -267,10 +267,10 @@ public:
 class ASTReadNode : public ASTExpressionNode
 {
 public:
-    ASTReadNode(Scope<ASTExpressionNode> a, Scope<ASTExpressionNode> b);
+    ASTReadNode(Scope<ASTExpressionNode> x, Scope<ASTExpressionNode> y);
 public:
-    Scope<ASTExpressionNode> a;
-    Scope<ASTExpressionNode> b;
+    Scope<ASTExpressionNode> x;
+    Scope<ASTExpressionNode> y;
 };
 
 class ASTRandIntNode : public ASTExpressionNode

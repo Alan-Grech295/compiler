@@ -136,7 +136,7 @@ Scope<ASTNode> Parser::ParseStatement()
     }
 
 
-    return Scope<ASTNode>();
+    throw SyntaxErrorException(program, programIndex);
 }
 
 Scope<ASTVarDeclNode> Parser::ParseVariableDeclaration()
@@ -464,14 +464,14 @@ Scope<ASTReadNode> Parser::ParseRead()
     auto nextToken = GetNextToken();
     ASSERT(CHECK_SUB_TYPE(nextToken, Builtin, type == Builtin::Type::READ));
 
-    auto exprA = ParseExpression();
+    auto x = ParseExpression();
 
     nextToken = GetNextToken();
     ASSERT(CHECK_SUB_TYPE(nextToken, Punctuation, type == Punctuation::Type::COMMA));
 
-    auto exprB = ParseExpression();
+    auto y = ParseExpression();
 
-    return CreateScope<ASTReadNode>(std::move(exprA), std::move(exprB));
+    return CreateScope<ASTReadNode>(std::move(x), std::move(y));
 }
 
 Scope<ASTRandIntNode> Parser::ParseRandInt()
