@@ -258,6 +258,7 @@ namespace Tokens
         enum class Type
         {
             EQUAL,
+            NOT_EQUAL,
             GREATER,
             LESS_THAN,
             GREATER_EQUAL,
@@ -281,6 +282,9 @@ namespace Tokens
                 type = Type::LESS_THAN;
                 if (lexeme.length() == 2)
                     type = Type::LESS_THAN_EQUAL;
+                break;
+            case '!':
+                type = Type::NOT_EQUAL;
                 break;
             }
         }

@@ -4,6 +4,7 @@
 
 #include "Lexer/Lexer.h"
 #include "Parser/Parser.h"
+#include <Semantic Analyzer/SemanticAnalyzerVisitor.h>
 
 
 int main()
@@ -36,6 +37,16 @@ int main()
         programAST = parser.Parse(fileText);
     }
     catch (Parser::SyntaxErrorException e)
+    {
+        std::cout << e.what() << std::endl;
+    }
+
+    SemanticAnalyzerVisitor visitor{};
+    try
+    {
+        programAST->accept(visitor);
+    }
+    catch (SemanticErrorException e)
     {
         std::cout << e.what() << std::endl;
     }

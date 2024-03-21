@@ -36,6 +36,9 @@
     <ClCompile Include="Semantic Analyzer\SymbolTable.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Semantic Analyzer\SemanticAnalyzerVisitor.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Lexer\Lexer.h">
@@ -57,6 +60,12 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Semantic Analyzer\SymbolTable.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Utils\Visitor.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Semantic Analyzer\SemanticAnalyzerVisitor.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

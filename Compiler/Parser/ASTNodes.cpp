@@ -87,6 +87,9 @@ ASTBinaryOpNode::ASTBinaryOpNode(Tokens::RelationalOp::Type type, std::unique_pt
         case Tokens::RelationalOp::Type::EQUAL:
             this->type = Type::EQUAL;
             break;
+        case Tokens::RelationalOp::Type::NOT_EQUAL:
+            this->type = Type::NOT_EQUAL;
+            break;
         case Tokens::RelationalOp::Type::GREATER:
             this->type = Type::GREATER;
             break;
