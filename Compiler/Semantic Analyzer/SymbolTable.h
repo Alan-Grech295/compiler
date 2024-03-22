@@ -6,6 +6,7 @@
 #include "../Lexer/Tokens.h"
 #include "../Parser/ASTNodes.h"
 
+template<typename T>
 class SymbolTable
 {
 public:
@@ -26,62 +27,83 @@ public:
     private:
         std::string msg;
     };
-    struct Entry
-    {
-        struct FuncData
-        {
-            FuncData() = default;
-
-            FuncData(const std::vector<ASTFunctionNode::Param>& params)
-                : params(params)
-            {
-                
-            }
-
-        public:
-            std::vector<ASTFunctionNode::Param> params;
-        };
-
-    public:
-        Entry()
-            : type(Tokens::VarType::Type::UNKNOWN), funcData(nullptr)
-        {}
-
-        Entry(const Tokens::VarType::Type& type, const std::vector<ASTFunctionNode::Param>& params)
-            : type(type)
-        {
-            funcData = CreateRef<FuncData>(params);
-        }
-
-        Entry(const Tokens::VarType::Type& type)
-            : type(type)
-        {
-        }
-
-        inline const bool IsFunction() const { return funcData.get(); }
-
-    public:
-        Tokens::VarType::Type type;
-        Ref<FuncData> funcData = nullptr;
-    };
 public:
     SymbolTable() {}
 
-    void PushScope(bool isolate = false);
-    void PopScope();
+    void PushScope(bool isolate = false)
+    {
+        scopes.emplace_back();
+        if (isolate)
+            Isolate();
+    }
 
-    void AddVariable(const std::string& name, Tokens::VarType::Type type);
-    void AddFunction(const std::string& name, Tokens::VarType::Type returnType, const std::vector<ASTFunctionNode::Param>& params);
+    void PopScope()
+    {
+        scopes.pop_back();
+        // Undo isolation if isolated scope is popped
+        if (scopes.size() < isolatedLevel)
+            isolatedLevel = -1;
+    }
 
-    void Isolate();
-    void IsolateNext();
+    void AddEntry(const std::string& name, T entry)
+    {
+        scopes[scopes.size() - 1][name] = entry;
+    }
 
-    bool contains(const std::string& name) const;
+    void Isolate()
+    {
+        isolatedLevel = scopes.size();
+    }
+
+    void IsolateNext()
+    {
+        isolatedLevel = scopes.size() + 1;
+    }
+
+    bool contains(const std::string& name) const
+    {
+        int level = scopes.size();
+        for (auto it = scopes.rbegin(); it != scopes.rend(); ++it, --level)
+        {
+            if (it->contains(name))
+            {
+                if (level < isolatedLevel)
+                {
+                    auto& entry = it->at(name);
+                    return entry.IsFunction();
+                }
+                return true;
+            }
+        }
+
+        return false;
+    }
 
     bool InRootScope() const { return scopes.size() == 1; }
 
-    const Entry& operator[](const std::string& name) const;
+    const T& operator[](const std::string& name) const
+    {
+        int level = scopes.size();
+
+        for (auto it = scopes.rbegin(); it != scopes.rend(); ++it, --level)
+        {
+            if (it->contains(name))
+            {
+                if (level < isolatedLevel)
+                {
+                    auto& entry = it->at(name);
+                    if (entry.IsFunction())
+                        return entry;
+                    else
+                        throw IdentifierNotFoundException(name);
+                }
+                return it->at(name);
+            }
+        }
+
+        throw IdentifierNotFoundException(name);
+    }
 private:
-    std::vector<std::unordered_map<std::string, Entry>> scopes;
+    std::vector<std::unordered_map<std::string, T>> scopes;
     int isolatedLevel = -1;
 };

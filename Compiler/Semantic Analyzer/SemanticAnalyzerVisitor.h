@@ -30,6 +30,45 @@ public:
 class SemanticAnalyzerVisitor : public Visitor
 {
 public:
+    struct Entry
+    {
+        struct FuncData
+        {
+            FuncData() = default;
+
+            FuncData(const std::vector<ASTFunctionNode::Param>& params)
+                : params(params)
+            {
+
+            }
+
+        public:
+            std::vector<ASTFunctionNode::Param> params;
+        };
+
+    public:
+        Entry()
+            : type(Tokens::VarType::Type::UNKNOWN), funcData(nullptr)
+        {}
+
+        Entry(const Tokens::VarType::Type& type, const std::vector<ASTFunctionNode::Param>& params)
+            : type(type)
+        {
+            funcData = CreateRef<FuncData>(params);
+        }
+
+        Entry(const Tokens::VarType::Type& type)
+            : type(type)
+        {
+        }
+
+        inline const bool IsFunction() const { return funcData.get(); }
+
+    public:
+        Tokens::VarType::Type type;
+        Ref<FuncData> funcData = nullptr;
+    };
+public:
     void visit(ASTBlockNode& node) override;
     void visit(ASTProgramNode& node) override;
     void visit(ASTIntLiteralNode& node) override;
@@ -77,7 +116,7 @@ private:
     }
 
 private:
-    SymbolTable symbolTable{};
+    SymbolTable<Entry> symbolTable{};
     std::vector<Tokens::VarType::Type> typeStack{};
     VarType::Type expectedRetType = VarType::Type::UNKNOWN;
 };

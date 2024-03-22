@@ -135,16 +135,17 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="Code Generation\CodeGenVisitor.cpp" />
     <ClCompile Include="Lexer\Lexer.cpp" />
     <ClCompile Include="Lexer\Tokens.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Parser\ASTNodes.cpp" />
     <ClCompile Include="Parser\Parser.cpp" />
     <ClCompile Include="Semantic Analyzer\SemanticAnalyzerVisitor.cpp" />
-    <ClCompile Include="Semantic Analyzer\SymbolTable.cpp" />
     <ClCompile Include="Utils\Table.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Code Generation\CodeGenVisitor.h" />
     <ClInclude Include="Lexer\Lexer.h" />
     <ClInclude Include="Lexer\Tokens.h" />
     <ClInclude Include="Parser\ASTNodes.h" />

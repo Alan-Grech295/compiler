@@ -9,7 +9,7 @@ void SemanticAnalyzerVisitor::visit(ASTBlockNode& node)
         ASTFunctionNode* funcNode = dynamic_cast<ASTFunctionNode*>(statement.get());
         if (funcNode)
         {
-            symbolTable.AddFunction(funcNode->name, funcNode->returnType, funcNode->params);
+            symbolTable.AddEntry(funcNode->name, Entry(funcNode->returnType, funcNode->params));
         }
     }
 
@@ -53,7 +53,7 @@ void SemanticAnalyzerVisitor::visit(ASTIdentifierNode& node)
 
 void SemanticAnalyzerVisitor::visit(ASTVarDeclNode& node)
 {
-    symbolTable.AddVariable(node.identifier->name, node.identifier->type);
+    symbolTable.AddEntry(node.identifier->name, Entry(node.identifier->type));
 
     node.identifier->accept(*this);
     node.value->accept(*this);
@@ -165,7 +165,7 @@ void SemanticAnalyzerVisitor::visit(ASTFunctionNode& node)
 
     for (auto& param : funcEntry.funcData->params)
     {
-        symbolTable.AddVariable(param.Name, param.Type);
+        symbolTable.AddEntry(param.Name, Entry(param.Type));
     }
 
     node.blockNode->accept(*this);
