@@ -159,6 +159,7 @@ void SemanticAnalyzerVisitor::visit(ASTReturnNode& node)
 void SemanticAnalyzerVisitor::visit(ASTFunctionNode& node)
 {
     ASSERT(symbolTable.InRootScope());
+    ASSERT(node.name != "main");
 
     auto funcEntry = symbolTable[node.name];
     ASSERT(funcEntry.IsFunction());
@@ -304,4 +305,6 @@ void SemanticAnalyzerVisitor::visit(ASTFuncCallNode& node)
         auto type = PopType();
         ASSERT(funcIt->Type == type);
     }
+
+    PushType(entry.type);
 }

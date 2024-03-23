@@ -12,7 +12,7 @@ public:
     class SyntaxErrorException : public std::exception
     {
     public:
-        SyntaxErrorException(const std::string& program, int character)
+        SyntaxErrorException(const std::string& program, int character, int codeLine)
         {
             std::string programUpToChar = program.substr(0, character - 1);
             int lineCount = std::ranges::count(programUpToChar, '\n') + 1;
@@ -20,7 +20,7 @@ public:
             int charCount = character - lastLine - 1;
 
             std::ostringstream oss;
-            oss << "Syntax error at line " << lineCount << " character " << charCount;
+            oss << "Syntax error at line " << lineCount << " character " << charCount << "(source code line: " << codeLine << ")";
             message = oss.str();
         }
     public:
@@ -84,4 +84,4 @@ private:
 };
 
 #define CHECK_SUB_TYPE(var, cls, check) (var->type == ::Tokens::cls::TokenType && var->As<::Tokens::cls>().check)
-#define ASSERT(condition) if(!(condition)) { throw SyntaxErrorException(program, pastProgramIndex); }
+#define ASSERT(condition) if(!(condition)) { throw SyntaxErrorException(program, pastProgramIndex, __LINE__); }

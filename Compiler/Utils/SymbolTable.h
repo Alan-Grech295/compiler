@@ -105,7 +105,8 @@ public:
 
         throw IdentifierNotFoundException(name);
     }
+public:
+    int isolatedLevel = -1;
 private:
     std::vector<std::unordered_map<std::string, T>> scopes;
-    int isolatedLevel = -1;
 };

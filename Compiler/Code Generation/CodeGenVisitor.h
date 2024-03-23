@@ -22,6 +22,19 @@ public:
         int frameIndex;
     };
 public:
+#define VM_FRAME_INDEX(index) symbolTable.size() - index - 1
+#define REL_LINE(index) index - instructionList->size()
+#define BIN_OP_INSTRUCTIONS \
+                            X(ADD, AddOpInstruction) \
+                            X(SUBTRACT, SubtractOpInstruction) \
+                            X(MULTIPLY, MultiplyOpInstruction) \
+                            X(DIVIDE, DivideOpInstruction) \
+                            X(GREATER, GreaterThanInstruction) \
+                            X(GREATER_EQUAL, GreaterThanEqualInstruction) \
+                            X(LESS_THAN, LessThanInstruction) \
+                            X(LESS_THAN_EQUAL, LessThanEqualInstruction) \
+                            X(EQUAL, EqualInstruction) 
+
     virtual void visit(ASTBlockNode& node) override;
     virtual void visit(ASTProgramNode& node) override;
     virtual void visit(ASTIntLiteralNode& node) override;
@@ -52,24 +65,26 @@ public:
 
     std::string Finalize();
 
+    std::string GetInstructionListString(InstructionList& instructionList);
+
     template<typename T, typename... Args>
     int AddInstruction(Args&&... args)
     {
-        instructionList.emplace_back(CreateScope<T>(std::forward<Args>(args)...));
-        return instructionList.size() - 1;
+        instructionList->emplace_back(CreateScope<T>(std::forward<Args>(args)...));
+        return instructionList->size() - 1;
     }
 
     int AddInstruction(Scope<Instruction> instruction)
     {
-        instructionList.emplace_back(std::move(instruction));
-        return instructionList.size() - 1;
+        instructionList->emplace_back(std::move(instruction));
+        return instructionList->size() - 1;
     }
 
     void PushScope()
     {
         int pushIndex = AddInstruction<PushInstruction>(0);
-        int oframeIndex = AddInstruction<OpenFrameInstruction>(pushIndex, instructionList);
-        frameStack.emplace_back(oframeIndex, instructionList);
+        int oframeIndex = AddInstruction<OpenFrameInstruction>(pushIndex, *instructionList);
+        frameStack.emplace_back(oframeIndex, *instructionList);
         symbolTable.PushScope();
     }
 
@@ -84,11 +99,26 @@ public:
     {
         auto& entry = symbolTable[name];
         AddInstruction<PushInstruction>(entry.index);
-        AddInstruction<PushInstruction>(entry.frameIndex);
+        AddInstruction<PushInstruction>(VM_FRAME_INDEX(entry.frameIndex));
         AddInstruction<StoreInstruction>();
     }
+
+    void AddFuncInstructionList()
+    {
+        instructionList = &funcInstructionLists.emplace_back();
+    }
+
+    void SwapMainList()
+    {
+        instructionList = &mainInstructionList;
+    }
+
 private:
     SymbolTable<Entry> symbolTable{};
-    InstructionList instructionList{};
+    InstructionList* instructionList = &mainInstructionList;
+    std::vector<InstructionList> funcInstructionLists;
+    InstructionList mainInstructionList{};
     std::vector<InstructionRef<OpenFrameInstruction>> frameStack{};
+
 };
+

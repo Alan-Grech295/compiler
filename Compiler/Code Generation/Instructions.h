@@ -18,14 +18,33 @@ public:
         OPEN_FRAME,
         CLOSE_FRAME,
         STORE,
+        RETURN,
 
         ADD,
         SUBTRACT,
         MULTIPLY,
         DIVIDE,
+        MOD,
         NOT,
 
+        GREATER,
+        GREATER_EQUAL,
+        LESS_THAN,
+        LESS_THAN_EQUAL,
+        EQUAL,
+
         PRINT,
+        RAND_INT,
+        DELAY,
+        WRITE,
+        WRITE_BOX,
+        READ,
+        WIDTH,
+        HEIGHT,
+
+        JUMP,
+        CJUMP,
+        CALL,
     };
 public:
     Instruction(Type type)
@@ -74,6 +93,10 @@ public:
 class PushInstruction : public Instruction
 {
 public:
+    PushInstruction()
+        : Instruction(Type::PUSH), value(0)
+    {}
+
     PushInstruction(int value)
         : Instruction(Type::PUSH), value(value)
     {}
@@ -83,6 +106,39 @@ public:
     {}
 
     virtual const std::string ToString() override { return std::format("push {}", value); }
+public:
+    float value;
+
+    static const Type Type = Type::PUSH;
+};
+
+class PushFuncInstruction : public Instruction
+{
+public:
+    PushFuncInstruction(const std::string& funcName)
+        : Instruction(Type::PUSH), funcName(funcName)
+    {}
+
+    virtual const std::string ToString() override { return "push ." + funcName; }
+
+public:
+    std::string funcName;
+
+    static const Type Type = Type::PUSH;
+};
+
+class PushRelativeInstruction : public Instruction
+{
+public:
+    PushRelativeInstruction()
+        : Instruction(Type::PUSH), value(0)
+    {}
+
+    PushRelativeInstruction(int value)
+        : Instruction(Type::PUSH), value(value)
+    {}
+
+    virtual const std::string ToString() override { return std::format("push #PC{}{}", value >= 0 ? "+" : "", value); }
 public:
     float value;
 
@@ -117,6 +173,19 @@ public:
     std::string funcName;
 
     static const Type Type = Type::FUNC_DECL;
+};
+
+class CallInstruction : public Instruction
+{
+public:
+    CallInstruction()
+        : Instruction(Type::CALL)
+    {}
+
+    virtual const std::string ToString() override { return "call"; }
+
+public:
+    static const Type Type = Type::CALL;
 };
 
 class HaltInstruction : public Instruction
@@ -218,6 +287,18 @@ public:
     static const Type Type = Type::DIVIDE;
 };
 
+class ModOpInstruction : public Instruction
+{
+public:
+    ModOpInstruction()
+        : Instruction(Type::MOD)
+    {}
+
+    virtual const std::string ToString() override { return "mod"; }
+
+    static const Type Type = Type::MOD;
+};
+
 class PrintInstruction : public Instruction
 {
 public:
@@ -241,3 +322,185 @@ public:
 
     static const Type Type = Type::NOT;
 };
+
+class RandIntInstruction : public Instruction
+{
+public:
+    RandIntInstruction()
+        : Instruction(Type::RAND_INT)
+    {}
+
+    virtual const std::string ToString() override { return "irnd"; }
+
+    static const Type Type = Type::RAND_INT;
+};
+
+
+class GreaterThanInstruction : public Instruction
+{
+public:
+    GreaterThanInstruction()
+        : Instruction(Type::GREATER)
+    {}
+
+    virtual const std::string ToString() override { return "gt"; }
+
+    static const Type Type = Type::GREATER;
+};
+
+class GreaterThanEqualInstruction : public Instruction
+{
+public:
+    GreaterThanEqualInstruction()
+        : Instruction(Type::GREATER_EQUAL)
+    {}
+
+    virtual const std::string ToString() override { return "ge"; }
+
+    static const Type Type = Type::GREATER_EQUAL;
+};
+
+class LessThanInstruction : public Instruction
+{
+public:
+    LessThanInstruction()
+        : Instruction(Type::LESS_THAN)
+    {}
+
+    virtual const std::string ToString() override { return "lt"; }
+
+    static const Type Type = Type::LESS_THAN;
+};
+
+class LessThanEqualInstruction : public Instruction
+{
+public:
+    LessThanEqualInstruction()
+        : Instruction(Type::LESS_THAN_EQUAL)
+    {}
+
+    virtual const std::string ToString() override { return "le"; }
+
+    static const Type Type = Type::LESS_THAN_EQUAL;
+};
+
+class EqualInstruction : public Instruction
+{
+public:
+    EqualInstruction()
+        : Instruction(Type::EQUAL)
+    {}
+
+    virtual const std::string ToString() override { return "eq"; }
+
+    static const Type Type = Type::EQUAL;
+};
+
+class JumpInstruction : public Instruction
+{
+public:
+    JumpInstruction()
+        : Instruction(Type::JUMP)
+    {}
+
+    virtual const std::string ToString() override { return "jmp"; }
+
+    static const Type Type = Type::JUMP;
+};
+
+class CompareJumpInstruction : public Instruction
+{
+public:
+    CompareJumpInstruction()
+        : Instruction(Type::CJUMP)
+    {}
+
+    virtual const std::string ToString() override { return "cjmp"; }
+
+    static const Type Type = Type::CJUMP;
+};
+
+class DelayInstruction : public Instruction
+{
+public:
+    DelayInstruction()
+        : Instruction(Type::DELAY)
+    {}
+
+    virtual const std::string ToString() override { return "delay"; }
+
+    static const Type Type = Type::DELAY;
+};
+
+class WidthInstruction : public Instruction
+{
+public:
+    WidthInstruction()
+        : Instruction(Type::WIDTH)
+    {}
+
+    virtual const std::string ToString() override { return "width"; }
+
+    static const Type Type = Type::WIDTH;
+};
+
+class HeightInstruction : public Instruction
+{
+public:
+    HeightInstruction()
+        : Instruction(Type::HEIGHT)
+    {}
+
+    virtual const std::string ToString() override { return "height"; }
+
+    static const Type Type = Type::HEIGHT;
+};
+
+class WriteInstruction : public Instruction
+{
+public:
+    WriteInstruction()
+        : Instruction(Type::WRITE)
+    {}
+
+    virtual const std::string ToString() override { return "write"; }
+
+    static const Type Type = Type::WRITE;
+};
+
+class WriteBoxInstruction : public Instruction
+{
+public:
+    WriteBoxInstruction()
+        : Instruction(Type::WRITE_BOX)
+    {}
+
+    virtual const std::string ToString() override { return "writebox"; }
+
+    static const Type Type = Type::WRITE_BOX;
+};
+
+class ReadInstruction : public Instruction
+{
+public:
+    ReadInstruction()
+        : Instruction(Type::READ)
+    {}
+
+    virtual const std::string ToString() override { return "read"; }
+
+    static const Type Type = Type::READ;
+};
+
+class ReturnInstruction : public Instruction
+{
+public:
+    ReturnInstruction()
+        : Instruction(Type::RETURN)
+    {}
+
+    virtual const std::string ToString() override { return "ret"; }
+
+    static const Type Type = Type::RETURN;
+};
+

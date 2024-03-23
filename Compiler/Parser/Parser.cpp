@@ -136,7 +136,7 @@ Scope<ASTNode> Parser::ParseStatement()
     }
 
 
-    throw SyntaxErrorException(program, programIndex);
+    throw SyntaxErrorException(program, programIndex, __LINE__);
 }
 
 Scope<ASTVarDeclNode> Parser::ParseVariableDeclaration()
@@ -200,6 +200,7 @@ Scope<ASTExpressionNode> Parser::ParseExpression(bool subExpr)
         nextToken = GetNextToken();
         ASSERT(nextToken->type == Token::Type::VAR_TYPE);
         curExpr = CreateScope<ASTCastNode>(nextToken->As<VarType>().type, std::move(curExpr));
+        nextToken = PeekNextToken();
     }
 
     ASSERT(!subExpr || (subExpr && CHECK_SUB_TYPE(nextToken, Bracket, type == Bracket::Type::CLOSE_PAREN)));
@@ -305,7 +306,7 @@ Scope<ASTExpressionNode> Parser::ParseFactor()
         break;
     }
 
-    throw SyntaxErrorException(program, programIndex);
+    throw SyntaxErrorException(program, programIndex, __LINE__);
 }
 
 Scope<ASTExpressionNode> Parser::ParseLiteral()
@@ -338,7 +339,7 @@ Scope<ASTExpressionNode> Parser::ParseLiteral()
     }
     }
 
-    throw SyntaxErrorException(program, programIndex);
+    throw SyntaxErrorException(program, programIndex, __LINE__);
 }
 
 Scope<ASTReturnNode> Parser::ParseReturnStatement()
