@@ -1,48 +1,8 @@
-let x: int = 0;
-let y: int = 1;
-let z: int = 2;
-if(x >= y){
-    let z: float = 1.1;
-    x = y;
-    z = 1.0;
-}
-// 
-// return x + y / 2;
-// 
-// Takes two integers and returns the max of the two.
-fun Max(x:int, y:int) -> int {
-    let m: int = x;
-    if (y > m) { m = y; }
-    return m;
-}
-// 
-while(x == 2){
-    let g: int = 0;
-    g = g + 1;
-}
-// 
-for(let i: int = 0; i < 10; i = i + 1){
-    // Do something here
-}
+let x: int = 1;
+let y: float = (5.0 + 10.0) / (2.0 * 1.5);
+__print 10 * 3 + 5;
 
-let i: int = 0;
-
-for(; i < 10; i = i + 1){
-    // Do something here
-}
-
-for(; i < 10;){
-    // Do something here
-}
-// 
-let x: bool = 1 != 1;
- __print 1 + 2;
- __delay 1000 * 2;
- __write 1, 2, #FFFF00;
- __write_box 3, 4, 1, 2, #FF00FF;
-// 
-// a = __random_int 10;
-// a = __width + __height * __read 1, 2;
-// 
-// a = function(param1, 1 + 2 * 3);
-// a = 1 + 2
+let b: bool = true;
+__print b;
+b = not b;
+__print b;

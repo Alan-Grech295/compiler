@@ -3,7 +3,7 @@
 #include <tuple>
 
 #include "../Utils/Visitor.h"
-#include "SymbolTable.h"
+#include "../Utils/SymbolTable.h"
 #include "../Lexer/Tokens.h"
 #include "../Parser/ASTNodes.h"
 

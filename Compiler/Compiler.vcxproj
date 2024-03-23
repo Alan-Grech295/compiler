@@ -146,12 +146,13 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Code Generation\CodeGenVisitor.h" />
+    <ClInclude Include="Code Generation\Instructions.h" />
     <ClInclude Include="Lexer\Lexer.h" />
     <ClInclude Include="Lexer\Tokens.h" />
     <ClInclude Include="Parser\ASTNodes.h" />
     <ClInclude Include="Parser\Parser.h" />
     <ClInclude Include="Semantic Analyzer\SemanticAnalyzerVisitor.h" />
-    <ClInclude Include="Semantic Analyzer\SymbolTable.h" />
+    <ClInclude Include="Utils\SymbolTable.h" />
     <ClInclude Include="Utils\Table.h" />
     <ClInclude Include="Utils\Utils.h" />
     <ClInclude Include="Utils\Visitor.h" />

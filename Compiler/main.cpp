@@ -5,6 +5,7 @@
 #include "Lexer/Lexer.h"
 #include "Parser/Parser.h"
 #include <Semantic Analyzer/SemanticAnalyzerVisitor.h>
+#include <Code Generation/CodeGenVisitor.h>
 
 
 int main()
@@ -13,7 +14,7 @@ int main()
 
     std::ifstream file;
     std::string line;
-    file.open("src/example - full.txt");
+    file.open("src/example.txt");
     std::string fileText;
     std::string fileTextWithLines;
     if (file.is_open())
@@ -50,6 +51,17 @@ int main()
     {
         std::cout << e.what() << std::endl;
     }
+
+    CodeGenVisitor codeGenVisitor{};
+    try
+    {
+        programAST->accept(codeGenVisitor);
+    }
+    catch (std::exception e)
+    {
+        std::cout << e.what() << std::endl;
+    }
+    std::cout << codeGenVisitor.Finalize() << std::endl;
 
     int a = 0;
 }

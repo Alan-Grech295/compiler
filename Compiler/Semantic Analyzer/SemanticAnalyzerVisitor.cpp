@@ -1,5 +1,8 @@
 #include "SemanticAnalyzerVisitor.h"
 
+// TODO: Check for functions called main
+// TODO: Check for returns in a functions (including if and elses)
+
 void SemanticAnalyzerVisitor::visit(ASTBlockNode& node)
 {
     symbolTable.PushScope();

@@ -1,9 +1,27 @@
 #pragma once
 #include "../Utils/Visitor.h"
 #include "../Parser/ASTNodes.h"
+#include "../Utils/SymbolTable.h"
+#include "Instructions.h"
 
 class CodeGenVisitor : public Visitor
 {
+public:
+    struct Entry
+    {
+    public:
+        Entry() = default;
+
+        Entry(int index, int frameIndex)
+            : index(index), frameIndex(frameIndex)
+        {}
+
+        const bool IsFunction() const { return false; }
+    public:
+        int index;
+        int frameIndex;
+    };
+public:
     virtual void visit(ASTBlockNode& node) override;
     virtual void visit(ASTProgramNode& node) override;
     virtual void visit(ASTIntLiteralNode& node) override;
@@ -32,6 +50,45 @@ class CodeGenVisitor : public Visitor
     virtual void visit(ASTRandIntNode& node) override;
     virtual void visit(ASTFuncCallNode& node) override;
 
+    std::string Finalize();
+
+    template<typename T, typename... Args>
+    int AddInstruction(Args&&... args)
+    {
+        instructionList.emplace_back(CreateScope<T>(std::forward<Args>(args)...));
+        return instructionList.size() - 1;
+    }
+
+    int AddInstruction(Scope<Instruction> instruction)
+    {
+        instructionList.emplace_back(std::move(instruction));
+        return instructionList.size() - 1;
+    }
+
+    void PushScope()
+    {
+        int pushIndex = AddInstruction<PushInstruction>(0);
+        int oframeIndex = AddInstruction<OpenFrameInstruction>(pushIndex, instructionList);
+        frameStack.emplace_back(oframeIndex, instructionList);
+        symbolTable.PushScope();
+    }
+
+    void PopScope()
+    {
+        AddInstruction<CloseFrameInstruction>();
+        frameStack.pop_back();
+        symbolTable.PopScope();
+    }
+
+    void StoreVar(const std::string& name)
+    {
+        auto& entry = symbolTable[name];
+        AddInstruction<PushInstruction>(entry.index);
+        AddInstruction<PushInstruction>(entry.frameIndex);
+        AddInstruction<StoreInstruction>();
+    }
 private:
-    std::string code;
+    SymbolTable<Entry> symbolTable{};
+    InstructionList instructionList{};
+    std::vector<InstructionRef<OpenFrameInstruction>> frameStack{};
 };

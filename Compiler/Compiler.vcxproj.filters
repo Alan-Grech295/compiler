@@ -33,10 +33,10 @@
     <ClCompile Include="Parser\ASTNodes.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Semantic Analyzer\SymbolTable.cpp">
+    <ClCompile Include="Semantic Analyzer\SemanticAnalyzerVisitor.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Semantic Analyzer\SemanticAnalyzerVisitor.cpp">
+    <ClCompile Include="Code Generation\CodeGenVisitor.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -59,13 +59,19 @@
     <ClInclude Include="Utils\Utils.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Semantic Analyzer\SymbolTable.h">
+    <ClInclude Include="Utils\SymbolTable.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Utils\Visitor.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Semantic Analyzer\SemanticAnalyzerVisitor.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Code Generation\CodeGenVisitor.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Code Generation\Instructions.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

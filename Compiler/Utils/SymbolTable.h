@@ -81,6 +81,8 @@ public:
 
     bool InRootScope() const { return scopes.size() == 1; }
 
+    const int size() const { return scopes.size(); }
+
     const T& operator[](const std::string& name) const
     {
         int level = scopes.size();
