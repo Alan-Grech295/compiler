@@ -56,7 +56,7 @@ void SemanticAnalyzerVisitor::visit(ASTIdentifierNode& node)
 
 void SemanticAnalyzerVisitor::visit(ASTVarDeclNode& node)
 {
-    symbolTable.AddEntry(node.identifier->name, Entry(node.identifier->type));
+    symbolTable.AddEntry(node.identifier->name, Entry(node.identifier->type, node.identifier->arraySize));
 
     node.identifier->accept(*this);
     node.value->accept(*this);
@@ -307,4 +307,26 @@ void SemanticAnalyzerVisitor::visit(ASTFuncCallNode& node)
     }
 
     PushType(entry.type);
+}
+
+void SemanticAnalyzerVisitor::visit(ASTArraySetNode& node)
+{
+    ASSERT(node.duplication != 0);
+
+    node.literals[0]->accept(*this);
+    if (node.duplication == -1)
+    {
+        auto type = PopType();
+        for (int i = 1; i < node.literals.size(); i++)
+        {
+            node.literals[i]->accept(*this);
+            ASSERT(type == PopType());
+        }
+        PushType(type);
+    }
+}
+
+void SemanticAnalyzerVisitor::visit(ASTArrayIndexNode& node)
+{
+    visit((ASTIdentifierNode&)node);
 }

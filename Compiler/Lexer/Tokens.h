@@ -36,11 +36,11 @@ namespace Tokens
         };
 
         Token(int length)
-            : type(Type::ERROR), lexemeLength(length)
+            : type(Type::ERROR), lexemeLength(length), startIndex(0)
         {}
 
-        Token(Type type, const std::string& lexeme)
-            : type(type), lexemeLength((uint32_t)lexeme.length())
+        Token(Type type, const std::string& lexeme, uint32_t startIndex)
+            : type(type), lexemeLength((uint32_t)lexeme.length()), startIndex(startIndex)
         {}
 
         virtual ~Token() = default;
@@ -53,17 +53,18 @@ namespace Tokens
     public:
         Type type;
         uint32_t lexemeLength;
+        uint32_t startIndex = 0;
     };
 
     struct Whitespace : public Token
     {
-        Whitespace(const std::string& lexeme)
-            : Token(Token::Type::WHITE_SPACE, lexeme)
+        Whitespace(const std::string& lexeme, uint32_t startIndex)
+            : Token(Token::Type::WHITE_SPACE, lexeme, startIndex)
         {}
 
-        static Scope<Token> Create(const std::string& lexeme)
+        static Scope<Token> Create(const std::string& lexeme, uint32_t startIndex)
         {
-            return CreateScope<Whitespace>(lexeme);
+            return CreateScope<Whitespace>(lexeme, startIndex);
         }
 
     public:
@@ -72,13 +73,13 @@ namespace Tokens
 
     struct IntegerLiteral : public Token
     {
-        IntegerLiteral(const std::string& lexeme)
-            : Token(Token::Type::INT_LITERAL, lexeme), value(std::stoi(lexeme))
+        IntegerLiteral(const std::string& lexeme, uint32_t startIndex)
+            : Token(Token::Type::INT_LITERAL, lexeme, startIndex), value(std::stoi(lexeme))
         {}
 
-        static Scope<Token> Create(const std::string& lexeme)
+        static Scope<Token> Create(const std::string& lexeme, uint32_t startIndex)
         {
-            return CreateScope<IntegerLiteral>(lexeme);
+            return CreateScope<IntegerLiteral>(lexeme, startIndex);
         }
     public:
         int value;
@@ -88,13 +89,13 @@ namespace Tokens
 
     struct FloatLiteral : public Token
     {
-        FloatLiteral(const std::string& lexeme)
-            : Token(Token::Type::FLOAT_LITERAL, lexeme), value(std::stof(lexeme))
+        FloatLiteral(const std::string& lexeme, uint32_t startIndex)
+            : Token(Token::Type::FLOAT_LITERAL, lexeme, startIndex), value(std::stof(lexeme))
         {}
 
-        static Scope<Token> Create(const std::string& lexeme)
+        static Scope<Token> Create(const std::string& lexeme, uint32_t startIndex)
         {
-            return CreateScope<FloatLiteral>(lexeme);
+            return CreateScope<FloatLiteral>(lexeme, startIndex);
         }
     public:
         float value;
@@ -104,17 +105,17 @@ namespace Tokens
 
     struct ColourLiteral : public Token
     {
-        ColourLiteral(const std::string& lexeme)
-            : Token(Token::Type::COLOUR_LITERAL, lexeme)
+        ColourLiteral(const std::string& lexeme, uint32_t startIndex)
+            : Token(Token::Type::COLOUR_LITERAL, lexeme, startIndex)
         {
             std::stringstream ss;
             ss << std::hex << lexeme.substr(1, 6);
             ss >> value;
         }
 
-        static Scope<Token> Create(const std::string& lexeme)
+        static Scope<Token> Create(const std::string& lexeme, uint32_t startIndex)
         {
-            return CreateScope<ColourLiteral>(lexeme);
+            return CreateScope<ColourLiteral>(lexeme, startIndex);
         }
     public:
         int value = 0;
@@ -124,14 +125,14 @@ namespace Tokens
 
     struct BooleanLiteral : public Token
     {
-        BooleanLiteral(const std::string& lexeme)
-            : Token(Token::Type::BOOLEAN_LITERAL, lexeme), value(lexeme == "true")
+        BooleanLiteral(const std::string& lexeme, uint32_t startIndex)
+            : Token(Token::Type::BOOLEAN_LITERAL, lexeme, startIndex), value(lexeme == "true")
         {
         }
 
-        static Scope<Token> Create(const std::string& lexeme)
+        static Scope<Token> Create(const std::string& lexeme, uint32_t startIndex)
         {
-            return CreateScope<BooleanLiteral>(lexeme);
+            return CreateScope<BooleanLiteral>(lexeme, startIndex);
         }
     public:
         bool value = false;
@@ -150,8 +151,8 @@ namespace Tokens
             COLOUR,
         };
 
-        VarType(const std::string& lexeme)
-            : Token(Token::Type::VAR_TYPE, lexeme)
+        VarType(const std::string& lexeme, uint32_t startIndex)
+            : Token(Token::Type::VAR_TYPE, lexeme, startIndex)
         {
             if (lexeme == "float")
             {
@@ -171,9 +172,9 @@ namespace Tokens
             }
         }
 
-        static Scope<Token> Create(const std::string& lexeme)
+        static Scope<Token> Create(const std::string& lexeme, uint32_t startIndex)
         {
-            return CreateScope<VarType>(lexeme);
+            return CreateScope<VarType>(lexeme, startIndex);
         }
     public:
         Type type;
@@ -190,8 +191,8 @@ namespace Tokens
             AND,
         };
 
-        MultiplicativeOp(const std::string& lexeme)
-            : Token(Token::Type::MULT_OP, lexeme)
+        MultiplicativeOp(const std::string& lexeme, uint32_t startIndex)
+            : Token(Token::Type::MULT_OP, lexeme, startIndex)
         {
             if (lexeme == "*")
             {
@@ -207,9 +208,9 @@ namespace Tokens
             }
         }
 
-        static Scope<Token> Create(const std::string& lexeme)
+        static Scope<Token> Create(const std::string& lexeme, uint32_t startIndex)
         {
-            return CreateScope<MultiplicativeOp>(lexeme);
+            return CreateScope<MultiplicativeOp>(lexeme, startIndex);
         }
     public:
         Type type;
@@ -226,8 +227,8 @@ namespace Tokens
             OR,
         };
 
-        AdditiveOp(const std::string& lexeme)
-            : Token(Token::Type::ADD_OP, lexeme)
+        AdditiveOp(const std::string& lexeme, uint32_t startIndex)
+            : Token(Token::Type::ADD_OP, lexeme, startIndex)
         {
             if (lexeme == "+")
             {
@@ -243,9 +244,9 @@ namespace Tokens
             }
         }
 
-        static Scope<Token> Create(const std::string& lexeme)
+        static Scope<Token> Create(const std::string& lexeme, uint32_t startIndex)
         {
-            return CreateScope<AdditiveOp>(lexeme);
+            return CreateScope<AdditiveOp>(lexeme, startIndex);
         }
     public:
         Type type;
@@ -265,8 +266,8 @@ namespace Tokens
             LESS_THAN_EQUAL,
         };
 
-        RelationalOp(const std::string& lexeme)
-            : Token(Token::Type::REL_OP, lexeme)
+        RelationalOp(const std::string& lexeme, uint32_t startIndex)
+            : Token(Token::Type::REL_OP, lexeme, startIndex)
         {
             switch (lexeme[0])
             {
@@ -289,9 +290,9 @@ namespace Tokens
             }
         }
 
-        static Scope<Token> Create(const std::string& lexeme)
+        static Scope<Token> Create(const std::string& lexeme, uint32_t startIndex)
         {
-            return CreateScope<RelationalOp>(lexeme);
+            return CreateScope<RelationalOp>(lexeme, startIndex);
         }
     public:
         Type type;
@@ -306,15 +307,15 @@ namespace Tokens
             NOT,
         };
 
-        UnaryOp(const std::string& lexeme)
-            : Token(Token::Type::UNARY_OP, lexeme)
+        UnaryOp(const std::string& lexeme, uint32_t startIndex)
+            : Token(Token::Type::UNARY_OP, lexeme, startIndex)
         {
             type = Type::NOT;
         }
 
-        static Scope<Token> Create(const std::string& lexeme)
+        static Scope<Token> Create(const std::string& lexeme, uint32_t startIndex)
         {
-            return CreateScope<UnaryOp>(lexeme);
+            return CreateScope<UnaryOp>(lexeme, startIndex);
         }
     public:
         Type type;
@@ -350,17 +351,17 @@ namespace Tokens
 #undef X
         };
 
-        Keyword(const std::string& lexeme)
-            : Token(Token::Type::KEYWORD, lexeme)
+        Keyword(const std::string& lexeme, uint32_t startIndex)
+            : Token(Token::Type::KEYWORD, lexeme, startIndex)
         {
 #define X(keyword, name, _) if(lexeme == #keyword) { type = Type::name; return;}
             KEYWORDS
 #undef X
         }
 
-        static Scope<Token> Create(const std::string& lexeme)
+        static Scope<Token> Create(const std::string& lexeme, uint32_t startIndex)
         {
-#define X(keyword, name, cls) if(lexeme == #keyword) { return CreateScope<::Tokens::cls>(lexeme); }
+#define X(keyword, name, cls) if(lexeme == #keyword) { return CreateScope<::Tokens::cls>(lexeme, startIndex); }
             KEYWORDS
 #undef X
             //return CreateScope<Keyword>(lexeme);
@@ -375,16 +376,16 @@ namespace Tokens
 
     struct Identifier : public Token
     {
-        Identifier(const std::string& lexeme)
-            : Token(Token::Type::IDENTIFIER, lexeme), name(lexeme)
+        Identifier(const std::string& lexeme, uint32_t startIndex)
+            : Token(Token::Type::IDENTIFIER, lexeme, startIndex), name(lexeme)
         {}
 
-        static Scope<Token> Create(const std::string& lexeme)
+        static Scope<Token> Create(const std::string& lexeme, uint32_t startIndex)
         {
             if (Keyword::keywords.contains(lexeme))
-                return Keyword::Create(lexeme);
+                return Keyword::Create(lexeme, startIndex);
 
-            return CreateScope<Identifier>(lexeme);
+            return CreateScope<Identifier>(lexeme, startIndex);
         }
     public:
         std::string name;
@@ -402,8 +403,8 @@ namespace Tokens
             ARROW
         };
 
-        Punctuation(const std::string& lexeme)
-            : Token(Token::Type::PUNCTUATION, lexeme)
+        Punctuation(const std::string& lexeme, uint32_t startIndex)
+            : Token(Token::Type::PUNCTUATION, lexeme, startIndex)
         {
             if (lexeme == "->")
             {
@@ -425,9 +426,9 @@ namespace Tokens
             }
         }
 
-        static Scope<Token> Create(const std::string& lexeme)
+        static Scope<Token> Create(const std::string& lexeme, uint32_t startIndex)
         {
-            return CreateScope<Punctuation>(lexeme);
+            return CreateScope<Punctuation>(lexeme, startIndex);
         }
     public:
         Type type;
@@ -437,14 +438,14 @@ namespace Tokens
 
     struct NewLine : public Token
     {
-        NewLine(const std::string& lexeme)
-            : Token(Token::Type::NEW_LINE, lexeme)
+        NewLine(const std::string& lexeme, uint32_t startIndex)
+            : Token(Token::Type::NEW_LINE, lexeme, startIndex)
         {
         }
 
-        static Scope<Token> Create(const std::string& lexeme)
+        static Scope<Token> Create(const std::string& lexeme, uint32_t startIndex)
         {
-            return CreateScope<NewLine>(lexeme);
+            return CreateScope<NewLine>(lexeme, startIndex);
         }
 
     public:
@@ -463,8 +464,8 @@ namespace Tokens
             CLOSE_CURLY_BRACK,
         };
 
-        Bracket(const std::string& lexeme)
-            : Token(Token::Type::BRACKET, lexeme)
+        Bracket(const std::string& lexeme, uint32_t startIndex)
+            : Token(Token::Type::BRACKET, lexeme, startIndex)
         {
             switch (lexeme[0])
             {
@@ -489,9 +490,9 @@ namespace Tokens
             }
         }
 
-        static Scope<Token> Create(const std::string& lexeme)
+        static Scope<Token> Create(const std::string& lexeme, uint32_t startIndex)
         {
-            return CreateScope<Bracket>(lexeme);
+            return CreateScope<Bracket>(lexeme, startIndex);
         }
     public:
         Type type;
@@ -501,14 +502,14 @@ namespace Tokens
 
     struct Assignment : public Token
     {
-        Assignment(const std::string& lexeme)
-            : Token(Token::Type::ASSIGNMENT, lexeme)
+        Assignment(const std::string& lexeme, uint32_t startIndex)
+            : Token(Token::Type::ASSIGNMENT, lexeme, startIndex)
         {
         }
 
-        static Scope<Token> Create(const std::string& lexeme)
+        static Scope<Token> Create(const std::string& lexeme, uint32_t startIndex)
         {
-            return CreateScope<Assignment>(lexeme);
+            return CreateScope<Assignment>(lexeme, startIndex);
         }
 
     public:
@@ -517,14 +518,14 @@ namespace Tokens
 
     struct LineComment : public Token
     {
-        LineComment(const std::string& lexeme)
-            : Token(Token::Type::LINE_COMMENT, lexeme)
+        LineComment(const std::string& lexeme, uint32_t startIndex)
+            : Token(Token::Type::LINE_COMMENT, lexeme, startIndex)
         {
         }
 
-        static Scope<Token> Create(const std::string& lexeme)
+        static Scope<Token> Create(const std::string& lexeme, uint32_t startIndex)
         {
-            return CreateScope<LineComment>(lexeme);
+            return CreateScope<LineComment>(lexeme, startIndex);
         }
 
     public:
@@ -534,14 +535,14 @@ namespace Tokens
 
     struct BlockComment : public Token
     {
-        BlockComment(const std::string& lexeme)
-            : Token(Token::Type::BLOCK_COMMENT, lexeme), open(lexeme == "/*")
+        BlockComment(const std::string& lexeme, uint32_t startIndex)
+            : Token(Token::Type::BLOCK_COMMENT, lexeme, startIndex), open(lexeme == "/*")
         {
         }
 
-        static Scope<Token> Create(const std::string& lexeme)
+        static Scope<Token> Create(const std::string& lexeme, uint32_t startIndex)
         {
-            return CreateScope<BlockComment>(lexeme);
+            return CreateScope<BlockComment>(lexeme, startIndex);
         }
 
     public:
@@ -569,19 +570,19 @@ namespace Tokens
 #undef X
         };
 
-        Builtin(const std::string& lexeme)
-            : Token(Token::Type::BUILTIN, lexeme)
+        Builtin(const std::string& lexeme, uint32_t startIndex)
+            : Token(Token::Type::BUILTIN, lexeme, startIndex)
         {
 #define X(keyword, name) if(lexeme == #keyword) { type = Type::name; }
             BUILTIN_TYPES
 #undef X
         }
 
-        static Scope<Token> Create(const std::string& lexeme)
+        static Scope<Token> Create(const std::string& lexeme, uint32_t startIndex)
         {
             if (builtinTypes.contains(lexeme))
             {
-                return CreateScope<Builtin>(lexeme);
+                return CreateScope<Builtin>(lexeme, startIndex);
             }
 
             return CreateScope<Token>(lexeme.length());

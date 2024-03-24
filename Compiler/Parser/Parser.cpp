@@ -155,24 +155,69 @@ Scope<ASTVarDeclNode> Parser::ParseVariableDeclaration()
     nextToken = GetNextToken();
     ASSERT(nextToken->type == Token::Type::VAR_TYPE);
 
-    Scope<ASTIdentifierNode> identifier = CreateScope<ASTIdentifierNode>(identifierName, nextToken->As<VarType>().type);
+    auto varType = nextToken->As<VarType>().type;
+
+    Scope<ASTExpressionNode> expression;
+    int arraySize = -1;
 
     nextToken = GetNextToken();
-    ASSERT(nextToken->type == Token::Type::ASSIGNMENT);
+    ASSERT(nextToken->type == Token::Type::ASSIGNMENT || CHECK_SUB_TYPE(nextToken, Bracket, type == Bracket::Type::OPEN_SQ_BRACK));
+    if(nextToken->type == Token::Type::BRACKET)
+    {
+        nextToken = GetNextToken();
+        ASSERT(nextToken->type == Token::Type::INT_LITERAL || CHECK_SUB_TYPE(nextToken, Bracket, type == Bracket::Type::CLOSE_SQ_BRACK));
+        if (nextToken->type == Token::Type::INT_LITERAL)
+        {
+            arraySize = nextToken->As<IntegerLiteral>().value;
+            nextToken = GetNextToken();
+            ASSERT(CHECK_SUB_TYPE(nextToken, Bracket, type == Bracket::Type::CLOSE_SQ_BRACK));
+        }
 
-    Scope<ASTExpressionNode> expression = ParseExpression();
+        nextToken = GetNextToken();
+        ASSERT(nextToken->type == Token::Type::ASSIGNMENT);
+
+        nextToken = GetNextToken();
+        ASSERT(CHECK_SUB_TYPE(nextToken, Bracket, type == Bracket::Type::OPEN_SQ_BRACK));
+
+        Scope<ASTArraySetNode> arraySetNode;
+
+        if (arraySize == -1)
+        {
+            arraySetNode = CreateScope<ASTArraySetNode>();
+            arraySize = 0;
+            while (!CHECK_SUB_TYPE(nextToken, Bracket, type == Bracket::Type::CLOSE_SQ_BRACK))
+            {
+                arraySetNode->AddLiterial(std::move(ParseLiteral()));
+                arraySize++;
+                nextToken = GetNextToken();
+                ASSERT(CHECK_SUB_TYPE(nextToken, Punctuation, type == Punctuation::Type::COMMA) ||
+                       CHECK_SUB_TYPE(nextToken, Bracket, type == Bracket::Type::CLOSE_SQ_BRACK));
+            }
+        }
+        else
+        {
+            arraySetNode = CreateScope<ASTArraySetNode>(std::move(ParseLiteral()), arraySize);
+            nextToken = GetNextToken();
+            ASSERT(CHECK_SUB_TYPE(nextToken, Bracket, type == Bracket::Type::CLOSE_SQ_BRACK));
+        }
+
+        expression = std::move(arraySetNode);
+    }
+    else
+    {
+        expression = ParseExpression(); 
+    }
+
+    Scope<ASTIdentifierNode> identifier = CreateScope<ASTIdentifierNode>(identifierName, varType, arraySize);
 
     return CreateScope<ASTVarDeclNode>(std::move(identifier), std::move(expression));
 }
 
 Scope<ASTAssignmentNode> Parser::ParseAssignment()
 {
+    auto identifier = ParseIdentifier();
+
     auto nextToken = GetNextToken();
-    ASSERT(nextToken->type == Token::Type::IDENTIFIER);
-
-    auto identifier = CreateScope<ASTIdentifierNode>(nextToken->As<Identifier>().name);
-
-    nextToken = GetNextToken();
     ASSERT(nextToken->type == Token::Type::ASSIGNMENT);
 
     auto expr = ParseExpression();
@@ -254,12 +299,12 @@ Scope<ASTExpressionNode> Parser::ParseFactor()
     case Token::Type::FLOAT_LITERAL:
     case Token::Type::BOOLEAN_LITERAL:
     case Token::Type::COLOUR_LITERAL:
-        UndoToken(nextToken->lexemeLength);
+        UndoToken(nextToken->startIndex);
         return ParseLiteral();
 
     case Token::Type::BUILTIN:
     {
-        UndoToken(nextToken->lexemeLength);
+        UndoToken(nextToken->startIndex);
         switch (nextToken->As<Builtin>().type)
         {
         case Builtin::Type::WIDTH:
@@ -276,14 +321,15 @@ Scope<ASTExpressionNode> Parser::ParseFactor()
     case Token::Type::IDENTIFIER:
     {
         auto after = PeekNextToken();
+        UndoToken(nextToken->startIndex);
         if (CHECK_SUB_TYPE(after, Bracket, type == Bracket::Type::OPEN_PAREN))
         {
-            UndoToken(nextToken->lexemeLength);
             return ParseFunctionCall();
         }
-
-        Identifier& identifierNode = nextToken->As<Identifier>();
-        return CreateScope<ASTIdentifierNode>(identifierNode.name);
+        else
+        {
+            return ParseIdentifier();
+        }
     }
 
         // Sub expression
@@ -326,7 +372,7 @@ Scope<ASTExpressionNode> Parser::ParseLiteral()
 
     case Token::Type::BUILTIN:
     {
-        UndoToken(nextToken->lexemeLength);
+        UndoToken(nextToken->startIndex);
         switch (nextToken->As<Builtin>().type)
         {
         case Builtin::Type::WIDTH:
@@ -389,6 +435,26 @@ Scope<ASTFunctionNode> Parser::ParseFunctionDecl()
     auto blockNode = ParseBlock();
 
     return CreateScope<ASTFunctionNode>(funName, params, retType, std::move(blockNode));
+}
+
+Scope<ASTIdentifierNode> Parser::ParseIdentifier()
+{
+    auto nextToken = GetNextToken();
+    ASSERT(nextToken->type == Token::Type::IDENTIFIER);
+    std::string identifierName = nextToken->As<Identifier>().name;
+
+    nextToken = PeekNextToken();
+    
+    if (CHECK_SUB_TYPE(nextToken, Bracket, type == Bracket::Type::OPEN_SQ_BRACK))
+    {
+        JumpToken(nextToken->lexemeLength);
+        auto expr = ParseExpression();
+        nextToken = GetNextToken();
+        ASSERT(CHECK_SUB_TYPE(nextToken, Bracket, type == Bracket::Type::CLOSE_SQ_BRACK));
+        return CreateScope<ASTArrayIndexNode>(identifierName, std::move(expr));
+    }
+
+    return CreateScope<ASTIdentifierNode>(identifierName);
 }
 
 Scope<ASTWhileNode> Parser::ParseWhileLoop()

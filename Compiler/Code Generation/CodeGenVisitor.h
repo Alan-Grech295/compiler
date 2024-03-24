@@ -16,10 +16,17 @@ public:
             : index(index), frameIndex(frameIndex)
         {}
 
+        Entry(int index, int frameIndex, int arraySize)
+            : index(index), frameIndex(frameIndex), arraySize(arraySize)
+        {
+        }
+
         const bool IsFunction() const { return false; }
+        const bool IsArray() const { return arraySize > 0; }
     public:
         int index;
         int frameIndex;
+        int arraySize = 0;
     };
 public:
 #define VM_FRAME_INDEX(index) symbolTable.size() - index - 1
@@ -95,10 +102,21 @@ public:
         symbolTable.PopScope();
     }
 
-    void StoreVar(const std::string& name)
+    void StoreVar(const std::string& name, Scope<ASTExpressionNode> index = nullptr)
     {
         auto& entry = symbolTable[name];
-        AddInstruction<PushInstruction>(entry.index);
+        if (entry.IsArray())
+        {
+            index->accept(*this);
+            AddInstruction<PushInstruction>(entry.arraySize - 1);
+            AddInstruction<SubtractOpInstruction>();
+            AddInstruction<PushInstruction>(entry.index);
+            AddInstruction<AddOpInstruction>();
+        }
+        else
+        {
+            AddInstruction<PushInstruction>(entry.index);
+        }
         AddInstruction<PushInstruction>(VM_FRAME_INDEX(entry.frameIndex));
         AddInstruction<StoreInstruction>();
     }
@@ -119,6 +137,14 @@ private:
     std::vector<InstructionList> funcInstructionLists;
     InstructionList mainInstructionList{};
     std::vector<InstructionRef<OpenFrameInstruction>> frameStack{};
+
+
+    // Inherited via Visitor
+    void visit(ASTArraySetNode& node) override;
+
+
+    // Inherited via Visitor
+    void visit(ASTArrayIndexNode& node) override;
 
 };
 

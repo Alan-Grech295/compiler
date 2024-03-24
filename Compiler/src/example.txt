@@ -1,21 +1,6 @@
-fun LeftShift(num: int, m: int) -> int{
-    for(let i: int = 0; i < m; i = i + 1){
-        num = num + num;
-    }
-    return num;
+let x: int[10] = [0];
+for(let i: int = 0; i < 10; i = i + 1){
+    x[i] = i + 1;
 }
 
-for(let x: int = 0; x < __width; x = x + 1){
-    for(let y: int = 0; y < __height; y = y + 1){
-        let c_x: int = ((x as float) / (__width as float) * (255 as float)) as int;
-        c_x = LeftShift(c_x, 16);
-        let c_y: int = ((y as float) / (__height as float) * (255 as float)) as int;
-        c_y = LeftShift(c_y, 8);
-
-        __write x, y, c_x + c_y as colour;
-        __delay 1;
-    }
-}
-
-// let x: int = 1.5 as int;
-// __print x;
+__print x;

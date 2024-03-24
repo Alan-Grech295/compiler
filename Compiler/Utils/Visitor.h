@@ -6,6 +6,7 @@ class ASTFloatLiteralNode;
 class ASTBooleanLiteralNode;
 class ASTColourLiteralNode;
 class ASTIdentifierNode;
+class ASTArraySetNode;
 class ASTVarDeclNode;
 class ASTBinaryOpNode;
 class ASTNegateNode;
@@ -26,6 +27,7 @@ class ASTHeightNode;
 class ASTReadNode;
 class ASTRandIntNode;
 class ASTFuncCallNode;
+class ASTArrayIndexNode;
 
 class Visitor
 {
@@ -37,6 +39,8 @@ public:
     virtual void visit(ASTBooleanLiteralNode& node) = 0;
     virtual void visit(ASTColourLiteralNode& node)  = 0;
     virtual void visit(ASTIdentifierNode& node)     = 0;
+    virtual void visit(ASTArrayIndexNode& node)     = 0;
+    virtual void visit(ASTArraySetNode& node)       = 0;
     virtual void visit(ASTVarDeclNode& node)        = 0;
     virtual void visit(ASTBinaryOpNode& node)       = 0;
     virtual void visit(ASTNegateNode& node)         = 0;

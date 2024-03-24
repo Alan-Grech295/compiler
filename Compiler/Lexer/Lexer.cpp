@@ -55,7 +55,7 @@ Scope<Token> Lexer::GetNextToken(const std::string& program, int& index, bool ex
 Scope<Token> Lexer::GetNextToken(const std::string& program, int index)
 {
     if (index >= program.length())
-        return std::move(std::make_unique<Token>(Token::Type::END_OF_FILE, " "));
+        return std::move(CreateScope<Token>(Token::Type::END_OF_FILE, " ", index));
 
     int state = 0;
     int lastAccState = -1;
@@ -79,10 +79,10 @@ Scope<Token> Lexer::GetNextToken(const std::string& program, int index)
 
     if (lastAccState == -1)
     {
-        return std::make_unique<Token>(i - index);
+        return CreateScope<Token>(i - index);
     }
 
-    return std::move(GetTokenByFinalState(lastAccState, program.substr(index, lastIndex - index + 1)));
+    return std::move(GetTokenByFinalState(lastAccState, program.substr(index, lastIndex - index + 1), index));
 }
 
 void Lexer::InitTable()
@@ -204,11 +204,11 @@ void Lexer::InitTable()
 
 }
 
-Scope<Token> Lexer::GetTokenByFinalState(int state, const std::string& lexeme)
+Scope<Token> Lexer::GetTokenByFinalState(int state, const std::string& lexeme, uint32_t startIndex)
 {
     switch (state)
     {
-#define X(cls, state) case state: return std::move(cls::Create(lexeme)); 
+#define X(cls, state) case state: return std::move(cls::Create(lexeme, startIndex)); 
         TOKEN_FINAL_STATE
 #undef X
     }

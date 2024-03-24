@@ -47,12 +47,38 @@ class ASTExpressionNode : public ASTNode
 class ASTIdentifierNode : public ASTExpressionNode
 {
 public:
-    ASTIdentifierNode(const std::string& name, Tokens::VarType::Type type = Tokens::VarType::Type::UNKNOWN);
+    ASTIdentifierNode(const std::string& name, Tokens::VarType::Type type = Tokens::VarType::Type::UNKNOWN, int arraySize = -1);
 
     inline virtual void accept(Visitor& visitor) override { visitor.visit(*this); };
 public:
     std::string name;
     Tokens::VarType::Type type = Tokens::VarType::Type::UNKNOWN;
+    int arraySize = -1;
+};
+
+class ASTArrayIndexNode : public ASTIdentifierNode
+{
+public:
+    ASTArrayIndexNode(const std::string& name, Scope<ASTExpressionNode> index);
+
+    inline virtual void accept(Visitor& visitor) override { visitor.visit(*this); };
+public:
+    std::string name;
+    Scope<ASTExpressionNode> index;
+};
+
+class ASTArraySetNode : public ASTExpressionNode
+{
+public:
+    ASTArraySetNode() = default;
+    ASTArraySetNode(Scope<ASTExpressionNode> lit, int duplication);
+
+    void AddLiterial(Scope<ASTExpressionNode> lit);
+
+    inline virtual void accept(Visitor& visitor) override { visitor.visit(*this); };
+public:
+    std::vector<Scope<ASTExpressionNode>> literals;
+    int duplication = -1;
 };
 
 class ASTIntLiteralNode : public ASTExpressionNode

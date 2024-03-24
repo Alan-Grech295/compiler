@@ -112,7 +112,7 @@ private:
         return false;
     }
 
-    Scope<Token> GetTokenByFinalState(int state, const std::string& lexeme);
+    Scope<Token> GetTokenByFinalState(int state, const std::string& lexeme, uint32_t startIndex);
 
     Lexeme CatChar(char c);
 

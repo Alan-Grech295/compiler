@@ -62,10 +62,18 @@ public:
         {
         }
 
+        Entry(const Tokens::VarType::Type& type, int arraySize)
+            : type(type), arraySize(arraySize)
+        {
+        }
+
         inline const bool IsFunction() const { return funcData.get(); }
+
+        inline const bool IsArray() const { return arraySize > 0; }
 
     public:
         Tokens::VarType::Type type;
+        int arraySize = 0;
         Ref<FuncData> funcData = nullptr;
     };
 public:
@@ -119,6 +127,12 @@ private:
     SymbolTable<Entry> symbolTable{};
     std::vector<Tokens::VarType::Type> typeStack{};
     VarType::Type expectedRetType = VarType::Type::UNKNOWN;
+
+    // Inherited via Visitor
+    void visit(ASTArraySetNode& node) override;
+
+    // Inherited via Visitor
+    void visit(ASTArrayIndexNode& node) override;
 };
 
 #define ASSERT(check) if(!(check)) { throw SemanticErrorException(std::to_string(__LINE__)); }

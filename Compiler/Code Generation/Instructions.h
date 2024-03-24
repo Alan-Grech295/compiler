@@ -45,6 +45,9 @@ public:
         JUMP,
         CJUMP,
         CALL,
+
+        DUP_ARRAY,
+        STORE_ARRAY,
     };
 public:
     Instruction(Type type)
@@ -153,6 +156,36 @@ public:
     {}
 
     virtual const std::string ToString() override { return std::format("push [{}:{}]", index, frameIndex); }
+public:
+    int index;
+    int frameIndex;
+
+    static const Type Type = Type::PUSH;
+};
+
+class PushArrayInstruction : public Instruction
+{
+public:
+    PushArrayInstruction(int index, int frameIndex)
+        : Instruction(Type::PUSH), index(index), frameIndex(frameIndex)
+    {}
+
+    virtual const std::string ToString() override { return std::format("pusha [{}:{}]", index, frameIndex); }
+public:
+    int index;
+    int frameIndex;
+
+    static const Type Type = Type::PUSH;
+};
+
+class PushArrayIndexInstruction : public Instruction
+{
+public:
+    PushArrayIndexInstruction(int index, int frameIndex)
+        : Instruction(Type::PUSH), index(index), frameIndex(frameIndex)
+    {}
+
+    virtual const std::string ToString() override { return std::format("push +[{}:{}]", index, frameIndex); }
 public:
     int index;
     int frameIndex;
@@ -310,6 +343,19 @@ public:
 
     static const Type Type = Type::PRINT;
 };
+
+class PrintArrayInstruction : public Instruction
+{
+public:
+    PrintArrayInstruction()
+        : Instruction(Type::PRINT)
+    {}
+
+    virtual const std::string ToString() override { return "printa"; }
+
+    static const Type Type = Type::PRINT;
+};
+
 
 class NotInstruction : public Instruction
 {
@@ -502,5 +548,29 @@ public:
     virtual const std::string ToString() override { return "ret"; }
 
     static const Type Type = Type::RETURN;
+};
+
+class DuplicateArrayInstruction : public Instruction
+{
+public:
+    DuplicateArrayInstruction()
+        : Instruction(Type::DUP_ARRAY)
+    {}
+
+    virtual const std::string ToString() override { return "dupa"; }
+
+    static const Type Type = Type::DUP_ARRAY;
+};
+
+class StoreArrayInstruction : public Instruction
+{
+public:
+    StoreArrayInstruction()
+        : Instruction(Type::STORE_ARRAY)
+    {}
+
+    virtual const std::string ToString() override { return "sta"; }
+
+    static const Type Type = Type::STORE_ARRAY;
 };
 

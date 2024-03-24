@@ -42,24 +42,43 @@ void CodeGenVisitor::visit(ASTColourLiteralNode& node)
 void CodeGenVisitor::visit(ASTIdentifierNode& node)
 {
     auto& entry = symbolTable[node.name];
-    // For some reason, the top of the memory stack has index 0. This
-    // means that the frame index for an indentifier depends on how many
-    // memory frames are on the stack currently. To avoid this, the variable
-    // stack index is stored in reverse (i.e. frameIndex 0 is the bottom of the stack)
-    // and the actual value is calculated when it is to be pushed.
-    AddInstruction<PushVarInstruction>(entry.index, VM_FRAME_INDEX(entry.frameIndex));
+    if (entry.IsArray())
+    {
+        AddInstruction<PushInstruction>(entry.arraySize);
+        AddInstruction<PushArrayInstruction>(entry.index, VM_FRAME_INDEX(entry.frameIndex));
+        AddInstruction<PushInstruction>(entry.arraySize);
+    }
+    else
+    {
+        // For some reason, the top of the memory stack has index 0. This
+        // means that the frame index for an indentifier depends on how many
+        // memory frames are on the stack currently. To avoid this, the variable
+        // stack index is stored in reverse (i.e. frameIndex 0 is the bottom of the stack)
+        // and the actual value is calculated when it is to be pushed.
+        AddInstruction<PushVarInstruction>(entry.index, VM_FRAME_INDEX(entry.frameIndex));
+    }   
 }
 
 void CodeGenVisitor::visit(ASTVarDeclNode& node)
 {
-    int index = frameStack.back()->varCountRef->value++;
+    int index = frameStack.back()->varCountRef->value;
+    bool isArray = node.identifier->arraySize > 0;
+    frameStack.back()->varCountRef->value += isArray ? node.identifier->arraySize : 1;
+
     int frameIndex = symbolTable.size() - 1;
-    symbolTable.AddEntry(node.identifier->name, Entry(index, frameIndex));
+    symbolTable.AddEntry(node.identifier->name, Entry(index, frameIndex, node.identifier->arraySize));
 
     node.value->accept(*this);
     AddInstruction<PushInstruction>(index);
     AddInstruction<PushInstruction>(VM_FRAME_INDEX(frameIndex));
-    AddInstruction<StoreInstruction>();
+    if (isArray)
+    {
+        AddInstruction<StoreArrayInstruction>();
+    }
+    else
+    {
+        AddInstruction<StoreInstruction>();
+    }
 }
 
 void CodeGenVisitor::visit(ASTBinaryOpNode& node)
@@ -125,7 +144,12 @@ void CodeGenVisitor::visit(ASTCastNode& node)
 void CodeGenVisitor::visit(ASTAssignmentNode& node)
 {
     node.expr->accept(*this);
-    StoreVar(node.identifier->name);
+    Scope<ASTExpressionNode> index = nullptr;
+    if (auto arrIndexNode = dynamic_cast<ASTArrayIndexNode*>(node.identifier.get()))
+    {
+        index = std::move(arrIndexNode->index);
+    }
+    StoreVar(node.identifier->name, std::move(index));
 }
 
 void CodeGenVisitor::visit(ASTDecisionNode& node)
@@ -237,6 +261,15 @@ void CodeGenVisitor::visit(ASTForNode& node)
 void CodeGenVisitor::visit(ASTPrintNode& node)
 {
     node.expr->accept(*this);
+    if (auto idNode = dynamic_cast<ASTIdentifierNode*>(node.expr.get()))
+    {
+        auto& entry = symbolTable[idNode->name];
+        if (entry.IsArray())
+        {
+            AddInstruction<PrintArrayInstruction>();
+            return;
+        }
+    }
     AddInstruction<PrintInstruction>();
 }
 
@@ -319,4 +352,39 @@ std::string CodeGenVisitor::GetInstructionListString(InstructionList& instructio
     }
     instructions.pop_back();
     return instructions;
+}
+
+void CodeGenVisitor::visit(ASTArraySetNode& node)
+{
+    int valCount = 0;
+    if (node.duplication > 0)
+    {
+        valCount = node.duplication;
+        node.literals[0]->accept(*this);
+        AddInstruction<PushInstruction>(valCount - 1);
+        AddInstruction<DuplicateArrayInstruction>();
+    }
+    else
+    {
+        valCount = node.literals.size();
+        // Array values are push in "reverse". This is because
+        // when the arrays are pushed from the memory stack to the
+        // operand stack, they are pushed in reverse and hence cancel
+        // out. This means that accessing them is done in reverse
+        for (auto& node : node.literals)
+        {
+            node->accept(*this);
+        }
+    }
+
+    AddInstruction<PushInstruction>(valCount);
+}
+
+void CodeGenVisitor::visit(ASTArrayIndexNode& node)
+{
+    auto& entry = symbolTable[node.name];
+    node.index->accept(*this);
+    AddInstruction<PushInstruction>(entry.arraySize - 1);
+    AddInstruction<SubtractOpInstruction>();
+    AddInstruction<PushArrayIndexInstruction>(entry.index, VM_FRAME_INDEX(entry.frameIndex));
 }

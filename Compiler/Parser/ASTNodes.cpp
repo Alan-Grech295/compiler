@@ -10,8 +10,8 @@ ASTBlockNode::ASTBlockNode()
 {
 }
 
-ASTIdentifierNode::ASTIdentifierNode(const std::string& name, Tokens::VarType::Type type)
-    : name(name), type(type)
+ASTIdentifierNode::ASTIdentifierNode(const std::string& name, Tokens::VarType::Type type, int arraySize)
+    : name(name), type(type), arraySize(arraySize)
 {
 }
 
@@ -187,5 +187,21 @@ void ASTFuncCallNode::AddArg(Scope<ASTExpressionNode> arg)
 
 ASTCastNode::ASTCastNode(Tokens::VarType::Type castType, std::unique_ptr<ASTExpressionNode> expr)
     : castType(castType), expr(std::move(expr))
+{
+}
+
+ASTArraySetNode::ASTArraySetNode(Scope<ASTExpressionNode> lit, int duplication)
+    : duplication(duplication)
+{
+    literals.push_back(std::move(lit));
+}
+
+void ASTArraySetNode::AddLiterial(Scope<ASTExpressionNode> lit)
+{
+    literals.push_back(std::move(lit));
+}
+
+ASTArrayIndexNode::ASTArrayIndexNode(const std::string& name, Scope<ASTExpressionNode> index)
+    : ASTIdentifierNode(name), name(name), index(std::move(index))
 {
 }
