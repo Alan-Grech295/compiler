@@ -1,6 +1,7 @@
-let x: int[10] = [0];
-for(let i: int = 0; i < 10; i = i + 1){
-    x[i] = i + 1;
+let x: int[] = [1, 2, 3, 4, 5];
+
+for(let i: int = 0; i < 5; i = i + 1){
+    __print x[i];
 }
 
 __print x;

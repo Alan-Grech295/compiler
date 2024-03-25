@@ -1,5 +1,18 @@
 #include "CodeGenVisitor.h"
 
+CodeGenVisitor::CodeGenVisitor()
+{
+    AddFuncInstructionList();
+
+    AddInstruction<FuncDeclInstruction>("__Reverse");
+    AddInstruction<PushVarInstruction>(0, 0);
+    AddInstruction<PushArrayInstruction>(1, 0);
+    AddInstruction<PushVarInstruction>(0, 0);
+    AddInstruction<ReturnInstruction>();
+
+    SwapMainList();
+}
+
 void CodeGenVisitor::visit(ASTBlockNode& node)
 {
     PushScope();
@@ -263,11 +276,19 @@ void CodeGenVisitor::visit(ASTPrintNode& node)
     node.expr->accept(*this);
     if (auto idNode = dynamic_cast<ASTIdentifierNode*>(node.expr.get()))
     {
-        auto& entry = symbolTable[idNode->name];
-        if (entry.IsArray())
+        if (!dynamic_cast<ASTArrayIndexNode*>(node.expr.get()))
         {
-            AddInstruction<PrintArrayInstruction>();
-            return;
+            auto& entry = symbolTable[idNode->name];
+            if (entry.IsArray())
+            {
+                PopInstruction();
+                AddInstruction<PushInstruction>(entry.arraySize);
+                AddInstruction<PushInstruction>(entry.arraySize + 1);
+                AddInstruction<PushFuncInstruction>("__Reverse");
+                AddInstruction<CallInstruction>();
+                AddInstruction<PrintArrayInstruction>();
+                return;
+            }
         }
     }
     AddInstruction<PrintInstruction>();
@@ -371,9 +392,9 @@ void CodeGenVisitor::visit(ASTArraySetNode& node)
         // when the arrays are pushed from the memory stack to the
         // operand stack, they are pushed in reverse and hence cancel
         // out. This means that accessing them is done in reverse
-        for (auto& node : node.literals)
+        for (auto it = node.literals.rbegin(); it != node.literals.rend(); ++it)
         {
-            node->accept(*this);
+            (*it)->accept(*this);
         }
     }
 
@@ -384,7 +405,5 @@ void CodeGenVisitor::visit(ASTArrayIndexNode& node)
 {
     auto& entry = symbolTable[node.name];
     node.index->accept(*this);
-    AddInstruction<PushInstruction>(entry.arraySize - 1);
-    AddInstruction<SubtractOpInstruction>();
     AddInstruction<PushArrayIndexInstruction>(entry.index, VM_FRAME_INDEX(entry.frameIndex));
 }

@@ -29,6 +29,7 @@ public:
         int arraySize = 0;
     };
 public:
+    CodeGenVisitor();
 #define VM_FRAME_INDEX(index) symbolTable.size() - index - 1
 #define REL_LINE(index) index - instructionList->size()
 #define BIN_OP_INSTRUCTIONS \
@@ -119,6 +120,11 @@ public:
         }
         AddInstruction<PushInstruction>(VM_FRAME_INDEX(entry.frameIndex));
         AddInstruction<StoreInstruction>();
+    }
+
+    void PopInstruction()
+    {
+        instructionList->pop_back();
     }
 
     void AddFuncInstructionList()
