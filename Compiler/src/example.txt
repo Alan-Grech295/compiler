@@ -1,7 +1,16 @@
-let x: int[] = [1, 2, 3, 4, 5];
+fun Reverse(nums: int[8]) -> int[8] {
+    let out: int[8] = [0];
+    for(let i: int = 0; i < 8; i = i + 1){
+        out[7 - i] = nums[i];
+    }
 
-for(let i: int = 0; i < 5; i = i + 1){
-    __print x[i];
+    return out;
 }
 
+let x: int[] = [1,2,3,4,5,6,7,8];
+for(let i: int = 0; i < 8; i = i + 1){
+    x[i] =  __random_int 100;
+}
 __print x;
+__print -1;
+__print Reverse(x);

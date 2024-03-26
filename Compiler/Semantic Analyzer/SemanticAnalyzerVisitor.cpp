@@ -12,7 +12,7 @@ void SemanticAnalyzerVisitor::visit(ASTBlockNode& node)
         ASTFunctionNode* funcNode = dynamic_cast<ASTFunctionNode*>(statement.get());
         if (funcNode)
         {
-            symbolTable.AddEntry(funcNode->name, Entry(funcNode->returnType, funcNode->params));
+            symbolTable.AddEntry(funcNode->name, Entry(funcNode->returnType, funcNode->returnSize, funcNode->params));
         }
     }
 
@@ -51,7 +51,8 @@ void SemanticAnalyzerVisitor::visit(ASTColourLiteralNode& node)
 void SemanticAnalyzerVisitor::visit(ASTIdentifierNode& node)
 {
     ASSERT(symbolTable.contains(node.name));
-    PushType(symbolTable[node.name].type);
+    auto& entry = symbolTable[node.name];
+    PushType(entry.type, entry.arraySize);
 }
 
 void SemanticAnalyzerVisitor::visit(ASTVarDeclNode& node)
@@ -76,27 +77,28 @@ void SemanticAnalyzerVisitor::visit(ASTBinaryOpNode& node)
         case ASTBinaryOpNode::Type::ADD:
         case ASTBinaryOpNode::Type::SUBTRACT:
         case ASTBinaryOpNode::Type::MULTIPLY:
-            ASSERT(type1 != VarType::Type::BOOL);
+            ASSERT(type1.first != VarType::Type::BOOL && !IS_ARRAY(type1));
             PushType(type1);
             return;
         case ASTBinaryOpNode::Type::DIVIDE:
-            ASSERT(type1 != VarType::Type::BOOL);
+            ASSERT(type1.first != VarType::Type::BOOL && !IS_ARRAY(type1));
             PushType(VarType::Type::FLOAT);
             return;
         case ASTBinaryOpNode::Type::AND:
         case ASTBinaryOpNode::Type::OR:
-            ASSERT(type1 == VarType::Type::BOOL);
+            ASSERT(type1.first == VarType::Type::BOOL && !IS_ARRAY(type1));
             PushType(VarType::Type::BOOL);
             return;
         case ASTBinaryOpNode::Type::EQUAL:
         case ASTBinaryOpNode::Type::NOT_EQUAL:
+            ASSERT(type1.second == -1);
             PushType(VarType::Type::BOOL);
             return;
         case ASTBinaryOpNode::Type::GREATER:
         case ASTBinaryOpNode::Type::LESS_THAN:
         case ASTBinaryOpNode::Type::GREATER_EQUAL:
         case ASTBinaryOpNode::Type::LESS_THAN_EQUAL:
-            ASSERT(type1 != VarType::Type::BOOL);
+            ASSERT(type1.first != VarType::Type::BOOL && !IS_ARRAY(type1));
             PushType(VarType::Type::BOOL);
             return;
     }
@@ -107,7 +109,8 @@ void SemanticAnalyzerVisitor::visit(ASTNegateNode& node)
     node.expr->accept(*this);
     auto type = PopType();
 
-    ASSERT(type == VarType::Type::INT || type == VarType::Type::FLOAT);
+    ASSERT(!IS_ARRAY(type));
+    ASSERT(type.first == VarType::Type::INT || type.first == VarType::Type::FLOAT);
     PushType(type);
 }
 
@@ -116,7 +119,8 @@ void SemanticAnalyzerVisitor::visit(ASTNotNode& node)
     node.expr->accept(*this);
     auto type = PopType();
 
-    ASSERT(type == VarType::Type::BOOL);
+    ASSERT(!IS_ARRAY(type));
+    ASSERT(type.first == VarType::Type::BOOL);
     PushType(type);
 }
 
@@ -125,6 +129,7 @@ void SemanticAnalyzerVisitor::visit(ASTCastNode& node)
     // TODO: Add cast types
     node.expr->accept(*this);
     auto type = PopType();
+    ASSERT(!IS_ARRAY(type));
 
     PushType(node.castType);
 }
@@ -141,7 +146,8 @@ void SemanticAnalyzerVisitor::visit(ASTDecisionNode& node)
 {
     node.expr->accept(*this);
     auto type = PopType();
-    ASSERT(type == VarType::Type::BOOL);
+    ASSERT(!IS_ARRAY(type));
+    ASSERT(type.first == VarType::Type::BOOL);
 
     node.trueStatement->accept(*this);
 
@@ -153,7 +159,7 @@ void SemanticAnalyzerVisitor::visit(ASTReturnNode& node)
 {
     node.expr->accept(*this);
     auto type = PopType();
-    ASSERT(type == expectedRetType);
+    ASSERT(type.first == expectedRetType && type.second == expectedRetArrSize);
 }
 
 void SemanticAnalyzerVisitor::visit(ASTFunctionNode& node)
@@ -166,15 +172,17 @@ void SemanticAnalyzerVisitor::visit(ASTFunctionNode& node)
 
     symbolTable.PushScope(true);
     expectedRetType = node.returnType;
+    expectedRetArrSize = node.returnSize;
 
     for (auto& param : funcEntry.funcData->params)
     {
-        symbolTable.AddEntry(param.Name, Entry(param.Type));
+        symbolTable.AddEntry(param.Name, Entry(param.Type, param.ArraySize));
     }
 
     node.blockNode->accept(*this);
 
     expectedRetType = VarType::Type::UNKNOWN;
+    expectedRetArrSize = -1;
 
     symbolTable.PopScope();
 }
@@ -184,7 +192,7 @@ void SemanticAnalyzerVisitor::visit(ASTWhileNode& node)
     node.expr->accept(*this);
 
     auto type = PopType();
-    ASSERT(type == VarType::Type::BOOL);
+    ASSERT(type.first == VarType::Type::BOOL && !IS_ARRAY(type));
 
     node.blockNode->accept(*this);
 }
@@ -198,7 +206,7 @@ void SemanticAnalyzerVisitor::visit(ASTForNode& node)
     node.expr->accept(*this);
 
     auto type = PopType();
-    ASSERT(type == VarType::Type::BOOL);
+    ASSERT(type.first == VarType::Type::BOOL && !IS_ARRAY(type));
     if(node.assignment)
         node.assignment->accept(*this);
 
@@ -217,45 +225,45 @@ void SemanticAnalyzerVisitor::visit(ASTDelayNode& node)
 {
     node.delayExpr->accept(*this);
     auto type = PopType();
-    ASSERT(type == VarType::Type::INT);
+    ASSERT(type.first == VarType::Type::INT && !IS_ARRAY(type));
 }
 
 void SemanticAnalyzerVisitor::visit(ASTWriteNode& node)
 {
     node.x->accept(*this);
     auto type = PopType();
-    ASSERT(type == VarType::Type::INT);
+    ASSERT(type.first == VarType::Type::INT && !IS_ARRAY(type));
 
     node.y->accept(*this);
     type = PopType();
-    ASSERT(type == VarType::Type::INT);
+    ASSERT(type.first == VarType::Type::INT && !IS_ARRAY(type));
 
     node.colour->accept(*this);
     type = PopType();
-    ASSERT(type == VarType::Type::COLOUR);
+    ASSERT(type.first == VarType::Type::COLOUR && !IS_ARRAY(type));
 }
 
 void SemanticAnalyzerVisitor::visit(ASTWriteBoxNode& node)
 {
     node.x->accept(*this);
     auto type = PopType();
-    ASSERT(type == VarType::Type::INT);
+    ASSERT(type.first == VarType::Type::INT && !IS_ARRAY(type));
 
     node.y->accept(*this);
     type = PopType();
-    ASSERT(type == VarType::Type::INT);
+    ASSERT(type.first == VarType::Type::INT && !IS_ARRAY(type));
 
     node.w->accept(*this);
     type = PopType();
-    ASSERT(type == VarType::Type::INT);
+    ASSERT(type.first == VarType::Type::INT && !IS_ARRAY(type));
 
     node.h->accept(*this);
     type = PopType();
-    ASSERT(type == VarType::Type::INT);
+    ASSERT(type.first == VarType::Type::INT && !IS_ARRAY(type));
 
     node.colour->accept(*this);
     type = PopType();
-    ASSERT(type == VarType::Type::COLOUR);
+    ASSERT(type.first == VarType::Type::COLOUR && !IS_ARRAY(type));
 }
 
 void SemanticAnalyzerVisitor::visit(ASTWidthNode& node)
@@ -272,11 +280,11 @@ void SemanticAnalyzerVisitor::visit(ASTReadNode& node)
 {
     node.x->accept(*this);
     auto type = PopType();
-    ASSERT(type == VarType::Type::INT);
+    ASSERT(type.first == VarType::Type::INT && !IS_ARRAY(type));
 
     node.y->accept(*this);
     type = PopType();
-    ASSERT(type == VarType::Type::INT);
+    ASSERT(type.first == VarType::Type::INT && !IS_ARRAY(type));
 
     PushType(VarType::Type::INT);
 }
@@ -285,7 +293,7 @@ void SemanticAnalyzerVisitor::visit(ASTRandIntNode& node)
 {
     node.max->accept(*this);
     auto type = PopType();
-    ASSERT(type == VarType::Type::INT);
+    ASSERT(type.first == VarType::Type::INT && !IS_ARRAY(type));
 
     PushType(VarType::Type::INT);
 }
@@ -303,10 +311,10 @@ void SemanticAnalyzerVisitor::visit(ASTFuncCallNode& node)
     {
         (*argIt)->accept(*this);
         auto type = PopType();
-        ASSERT(funcIt->Type == type);
+        ASSERT(funcIt->Type == type.first && funcIt->ArraySize == type.second);
     }
 
-    PushType(entry.type);
+    PushType(entry.type, entry.arraySize);
 }
 
 void SemanticAnalyzerVisitor::visit(ASTArraySetNode& node)
@@ -314,19 +322,24 @@ void SemanticAnalyzerVisitor::visit(ASTArraySetNode& node)
     ASSERT(node.duplication != 0);
 
     node.literals[0]->accept(*this);
+    auto type = PopType();
+    int arraySize = node.duplication;
     if (node.duplication == -1)
     {
-        auto type = PopType();
+        arraySize = node.literals.size();
         for (int i = 1; i < node.literals.size(); i++)
         {
             node.literals[i]->accept(*this);
             ASSERT(type == PopType());
         }
-        PushType(type);
     }
+
+    PushType(type.first, arraySize);
 }
 
 void SemanticAnalyzerVisitor::visit(ASTArrayIndexNode& node)
 {
-    visit((ASTIdentifierNode&)node);
+    ASSERT(symbolTable.contains(node.name));
+    auto& entry = symbolTable[node.name];
+    PushType(entry.type);
 }

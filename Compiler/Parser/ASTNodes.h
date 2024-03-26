@@ -50,6 +50,8 @@ public:
     ASTIdentifierNode(const std::string& name, Tokens::VarType::Type type = Tokens::VarType::Type::UNKNOWN, int arraySize = -1);
 
     inline virtual void accept(Visitor& visitor) override { visitor.visit(*this); };
+
+    inline bool IsArray() const { return arraySize > 0; }
 public:
     std::string name;
     Tokens::VarType::Type type = Tokens::VarType::Type::UNKNOWN;
@@ -235,23 +237,27 @@ public:
     struct Param
     {
     public:
-        Param(const std::string& name, Tokens::VarType::Type type)
-            : Name(name), Type(type)
+        Param(const std::string& name, Tokens::VarType::Type type, int arraySize = -1)
+            : Name(name), Type(type), ArraySize(arraySize)
         {}
 
         Param() = default;
+
+        bool IsArray() const { return ArraySize > 0; }
     public:
         std::string Name;
         Tokens::VarType::Type Type;
+        int ArraySize = -1;
     };
 public:
-    ASTFunctionNode(const std::string& name, const std::vector<Param>& params, Tokens::VarType::Type returnType, Scope<ASTBlockNode> blockNode);
+    ASTFunctionNode(const std::string& name, const std::vector<Param>& params, Tokens::VarType::Type returnType, int arraySize, Scope<ASTBlockNode> blockNode);
 
     inline virtual void accept(Visitor& visitor) override { visitor.visit(*this); };
 public:
     std::string name;
     std::vector<Param> params;
     Tokens::VarType::Type returnType;
+    int returnSize = -1;
     Scope<ASTBlockNode> blockNode;
 };
 

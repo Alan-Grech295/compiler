@@ -130,8 +130,8 @@ ASTReturnNode::ASTReturnNode(Scope<ASTExpressionNode> expr)
 {
 }
 
-ASTFunctionNode::ASTFunctionNode(const std::string& name, const std::vector<Param>& params, Tokens::VarType::Type returnType, Scope<ASTBlockNode> blockNode)
-    : name(name), params(params), returnType(returnType), blockNode(std::move(blockNode))
+ASTFunctionNode::ASTFunctionNode(const std::string& name, const std::vector<Param>& params, Tokens::VarType::Type returnType, int arraySize, Scope<ASTBlockNode> blockNode)
+    : name(name), params(params), returnType(returnType), returnSize(arraySize), blockNode(std::move(blockNode))
 {
 }
 

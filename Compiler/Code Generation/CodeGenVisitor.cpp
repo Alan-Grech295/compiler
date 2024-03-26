@@ -220,7 +220,7 @@ void CodeGenVisitor::visit(ASTFunctionNode& node)
     for (auto& param : node.params)
     {
         symbolTable.AddEntry(param.Name, Entry(index, frameIndex));
-        index++;
+        index += (param.IsArray() ? param.ArraySize : 1);
     }
 
     node.blockNode->accept(*this);
@@ -343,12 +343,31 @@ void CodeGenVisitor::visit(ASTRandIntNode& node)
 
 void CodeGenVisitor::visit(ASTFuncCallNode& node)
 {
+    int argSize = 0;
     for (auto it = node.args.rbegin(); it != node.args.rend(); ++it)
     {
         (*it)->accept(*this);
+        if (auto idNode = dynamic_cast<ASTIdentifierNode*>((*it).get()))
+        {
+            auto& entry = symbolTable[idNode->name];
+            if (entry.IsArray())
+            {
+                // Pop size instruction
+                PopInstruction();
+                argSize += entry.arraySize;
+            }
+            else 
+            {
+                argSize++;
+            }
+        }
+        else
+        {
+            argSize++;
+        }
     }
 
-    AddInstruction<PushInstruction>((int)node.args.size());
+    AddInstruction<PushInstruction>(argSize);
     AddInstruction<PushFuncInstruction>(node.funcName);
     AddInstruction<CallInstruction>();
 }

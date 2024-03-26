@@ -432,9 +432,21 @@ Scope<ASTFunctionNode> Parser::ParseFunctionDecl()
 
     auto retType = nextToken->As<VarType>().type;
 
+    nextToken = PeekNextToken();
+    int arraySize = -1;
+    if (CHECK_SUB_TYPE(nextToken, Bracket, type == Bracket::Type::OPEN_SQ_BRACK))
+    {
+        JumpToken(nextToken->lexemeLength);
+        nextToken = GetNextToken();
+        ASSERT(nextToken->type == Token::Type::INT_LITERAL);
+        arraySize = nextToken->As<IntegerLiteral>().value;
+        nextToken = GetNextToken();
+        ASSERT(CHECK_SUB_TYPE(nextToken, Bracket, type == Bracket::Type::CLOSE_SQ_BRACK));
+    }
+
     auto blockNode = ParseBlock();
 
-    return CreateScope<ASTFunctionNode>(funName, params, retType, std::move(blockNode));
+    return CreateScope<ASTFunctionNode>(funName, params, retType, arraySize, std::move(blockNode));
 }
 
 Scope<ASTIdentifierNode> Parser::ParseIdentifier()
@@ -658,6 +670,17 @@ ASTFunctionNode::Param Parser::ParseParam()
     ASSERT(nextToken->type == Token::Type::VAR_TYPE);
 
     param.Type = nextToken->As<VarType>().type;
+
+    nextToken = PeekNextToken();
+    if (CHECK_SUB_TYPE(nextToken, Bracket, type == Bracket::Type::OPEN_SQ_BRACK))
+    {
+        JumpToken(nextToken->lexemeLength);
+        nextToken = GetNextToken();
+        ASSERT(nextToken->type == Token::Type::INT_LITERAL);
+        param.ArraySize = nextToken->As<IntegerLiteral>().value;
+        nextToken = GetNextToken();
+        ASSERT(CHECK_SUB_TYPE(nextToken, Bracket, type == Bracket::Type::CLOSE_SQ_BRACK));
+    }
 
     return param;
 }

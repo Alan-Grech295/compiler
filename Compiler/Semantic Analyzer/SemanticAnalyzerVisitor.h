@@ -8,6 +8,7 @@
 #include "../Parser/ASTNodes.h"
 
 using namespace Tokens;
+using Type = std::pair<Tokens::VarType::Type, int>;
 
 class SemanticErrorException : public std::exception
 {
@@ -51,8 +52,8 @@ public:
             : type(Tokens::VarType::Type::UNKNOWN), funcData(nullptr)
         {}
 
-        Entry(const Tokens::VarType::Type& type, const std::vector<ASTFunctionNode::Param>& params)
-            : type(type)
+        Entry(const Tokens::VarType::Type& type, int arraySize, const std::vector<ASTFunctionNode::Param>& params)
+            : type(type), arraySize(arraySize)
         {
             funcData = CreateRef<FuncData>(params);
         }
@@ -73,7 +74,7 @@ public:
 
     public:
         Tokens::VarType::Type type;
-        int arraySize = 0;
+        int arraySize = -1;
         Ref<FuncData> funcData = nullptr;
     };
 public:
@@ -106,15 +107,16 @@ public:
     void visit(ASTFuncCallNode& node) override;
 
 private:
-    inline void PushType(VarType::Type type) { typeStack.emplace_back(type); }
-    inline VarType::Type PopType()
+    inline void PushType(VarType::Type type, int arraySize = -1) { typeStack.emplace_back(type, arraySize); }
+    inline void PushType(Type type) { typeStack.emplace_back(type); }
+    inline Type PopType()
     {
         auto type = typeStack.back();
         typeStack.pop_back();
         return type;
     }
 
-    inline std::tuple<VarType::Type, VarType::Type> PopTypes()
+    inline std::tuple<Type, Type> PopTypes()
     {
         auto type1 = typeStack.back();
         typeStack.pop_back();
@@ -125,8 +127,9 @@ private:
 
 private:
     SymbolTable<Entry> symbolTable{};
-    std::vector<Tokens::VarType::Type> typeStack{};
+    std::vector<Type> typeStack{};
     VarType::Type expectedRetType = VarType::Type::UNKNOWN;
+    int expectedRetArrSize = -1;
 
     // Inherited via Visitor
     void visit(ASTArraySetNode& node) override;
@@ -136,3 +139,4 @@ private:
 };
 
 #define ASSERT(check) if(!(check)) { throw SemanticErrorException(std::to_string(__LINE__)); }
+#define IS_ARRAY(type) (type.second > 0)
