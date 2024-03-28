@@ -32,6 +32,8 @@ public:
         LESS_THAN,
         LESS_THAN_EQUAL,
         EQUAL,
+        AND,
+        OR,
 
         PRINT,
         RAND_INT,
@@ -41,10 +43,12 @@ public:
         READ,
         WIDTH,
         HEIGHT,
+        CLEAR,
 
         JUMP,
         CJUMP,
         CALL,
+        DROP,
 
         DUP_ARRAY,
         STORE_ARRAY,
@@ -320,6 +324,30 @@ public:
     static const Type Type = Type::DIVIDE;
 };
 
+class AndOpInstruction : public Instruction
+{
+public:
+    AndOpInstruction()
+        : Instruction(Type::AND)
+    {}
+
+    virtual const std::string ToString() override { return "and"; }
+
+    static const Type Type = Type::AND;
+};
+
+class OrOpInstruction : public Instruction
+{
+public:
+    OrOpInstruction()
+        : Instruction(Type::OR)
+    {}
+
+    virtual const std::string ToString() override { return "or"; }
+
+    static const Type Type = Type::OR;
+};
+
 class ModOpInstruction : public Instruction
 {
 public:
@@ -538,6 +566,18 @@ public:
     static const Type Type = Type::READ;
 };
 
+class ClearInstruction : public Instruction
+{
+public:
+    ClearInstruction()
+        : Instruction(Type::CLEAR)
+    {}
+
+    virtual const std::string ToString() override { return "clear"; }
+
+    static const Type Type = Type::CLEAR;
+};
+
 class ReturnInstruction : public Instruction
 {
 public:
@@ -546,6 +586,30 @@ public:
     {}
 
     virtual const std::string ToString() override { return "ret"; }
+
+    static const Type Type = Type::RETURN;
+};
+
+class DropInstruction : public Instruction
+{
+public:
+    DropInstruction()
+        : Instruction(Type::DROP)
+    {}
+
+    virtual const std::string ToString() override { return "drop"; }
+
+    static const Type Type = Type::DROP;
+};
+
+class ReturnArrayInstruction : public Instruction
+{
+public:
+    ReturnArrayInstruction()
+        : Instruction(Type::RETURN)
+    {}
+
+    virtual const std::string ToString() override { return "reta"; }
 
     static const Type Type = Type::RETURN;
 };

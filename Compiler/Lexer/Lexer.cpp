@@ -123,6 +123,10 @@ void Lexer::InitTable()
         transitions[0][(int)Lexeme::ASTERISK] = 9;
     #pragma endregion
 
+    #pragma region Modulo
+         transitions[0][(int)Lexeme::PERCENT] = 38;
+    #pragma endregion
+
     #pragma region Close Block Comment
         transitions[9][(int)Lexeme::FORWARD_SLASH] = 10;
     #pragma endregion
@@ -278,6 +282,8 @@ Lexer::Lexeme Lexer::CatChar(char c)
         return Lexeme::NEW_LINE;
     case '#':
         return Lexeme::HASHTAG;
+    case '%':
+        return Lexeme::PERCENT;
     }
 
     return Lexeme::OTHER;

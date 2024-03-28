@@ -1,16 +1,286 @@
-fun Reverse(nums: int[8]) -> int[8] {
-    let out: int[8] = [0];
-    for(let i: int = 0; i < 8; i = i + 1){
-        out[7 - i] = nums[i];
+fun Sin(x: float) -> float {
+    x = x % 6.283185307179586;
+    let result: float = 0.0;
+    let sign: int = 1;
+    let sqrX: float = x * x;
+    let factorial: float = 1.0;
+    let check: int = (x * 25.0 + 10.0) as int;
+    for(let i: int = 1; i < 150; i = i + 2){
+        result = result + (sign as float) * (x / factorial);
+        x = x * sqrX;
+        sign = sign * -1;
+        factorial = factorial * (i + 1 as float) * (i + 2 as float);
     }
 
-    return out;
+    return result;
 }
 
-let x: int[] = [1,2,3,4,5,6,7,8];
-for(let i: int = 0; i < 8; i = i + 1){
-    x[i] =  __random_int 100;
+fun Cos(x: float) -> float {
+    return Sin(x + 1.5707963267948966);
 }
-__print x;
-__print -1;
-__print Reverse(x);
+
+fun Abs(x: int) -> int {
+    if(x < 0){
+        return -x;
+    }
+
+    return x;
+}
+
+fun DrawLine(x1: int, x2: int, y1: int, y2: int, c: colour) -> int {
+    if(((x1 == x2) and (y1 == y2 + 1)) or ((y1 == y2) and (x1 == x2 + 1))){
+        __write x1, y1, c;
+        __write x2, y2, c;
+        return 0;
+    }
+
+    let isSteep: bool = Abs(y2 - y1) > Abs(x2 - x1);
+    if(isSteep){
+        let temp: int = x1;
+        x1 = y1;
+        y1 = temp;
+
+        temp = x2;
+        x2 = y2;
+        y2 = temp;
+    }
+
+    let isReversed: bool = x1 > x2;
+
+    if(isReversed){
+        let temp: int = x1;
+        x1 = x2;
+        x2 = temp;
+
+        temp = y1;
+        y1 = y2;
+        y2 = temp;
+
+        let deltax: int = x2 - x1;
+        let deltay: int = Abs(y2 - y1);
+        let extray: int = ((deltax as float) / 2.0) as int;
+        let currenty: int = y2;
+
+        let yDirection: int = 1;
+        if(y1 >= y2){
+            yDirection = -1;
+        }
+
+        for(let currentx: int = x2; currentx >= x1; currentx = currentx - 1){
+            if(isSteep){
+                __write currenty, currentx, c;
+            }else{
+                __write currentx, currenty, c;
+            }
+            extray = extray - deltay;
+
+            if(extray <= 0){
+                currenty = currenty - yDirection;
+                extray = extray + deltax;
+            }
+        }
+
+        return 1;
+    }else{
+        let deltax: int = x2 - x1;
+        let deltay: int = Abs(y2 - y1);
+        let extray: int = ((deltax as float) / 2.0) as int;
+        let currenty: int = y1;
+
+        let yDirection: int = 1;
+        if(y1 >= y2){
+            yDirection = -1;
+        }
+
+        for(let currentx: int = x1; currentx <= x2; currentx = currentx + 1){
+            if(isSteep){
+                __write currenty, currentx, c;
+            }else{
+                __write currentx, currenty, c;
+            }
+            extray = extray - deltay;
+
+            if(extray < 0){
+                currenty = currenty + yDirection;
+                extray = extray + deltax;
+            }
+        }
+
+        return 2;
+    }
+
+    return 3;
+}
+
+fun RotatePoints(points: float[24], xRot: float, yRot: float, zRot: float) -> float[24] {
+    let sinX: float = Sin(xRot);
+    let cosX: float = Cos(xRot);
+
+    let sinY: float = Sin(yRot);
+    let cosY: float = Cos(yRot);
+
+    let sinZ: float = Sin(zRot);
+    let cosZ: float = Cos(zRot);
+
+    for(let i: int = 0; i < 24; i = i + 3){
+        let x: float = points[i];
+        let y: float = points[i + 1];
+        let z: float = points[i + 2];
+
+        // Rotate around x axis
+        let rotatedX: float = x;
+        let rotatedY: float = (y * cosX) - (z * sinX);
+        let rotatedZ: float = (y * sinX) + (z * cosX);
+
+        // Rotate around y axis
+        rotatedX = (rotatedZ * sinY) + (rotatedX * cosY);
+        rotatedZ = (rotatedZ * cosY) - (rotatedX * sinY);
+
+        // Rotate around z axis
+        rotatedX = (rotatedX * cosZ) - (rotatedY * sinZ);
+        rotatedY = (rotatedX * sinZ) - (rotatedY * cosZ);
+
+        points[i] = rotatedX;
+        points[i + 1] = rotatedY;
+        points[i + 2] = rotatedZ;
+    }
+
+    return points;
+}
+
+fun Project(points: float[24], scaleX: float, scaleY: float, translateX: float, translateY: float) -> int[16] {
+    let projected: int[16] = [0];
+    let p: int = 0;
+    for(let i: int = 0; i < 24; i = i + 3){
+        projected[p] = (points[i] * scaleX + translateX) as int;
+        projected[p + 1] = (points[i + 1] * scaleY + translateY) as int;
+        p = p + 2;
+    }
+    return projected;
+}
+
+// Setting points
+let points: float[24] = [0.0];
+// Point 1
+points[0] = -1.0;
+points[1] = -1.0;
+points[2] = -1.0;
+
+// Point 2
+points[3] = 1.0;
+points[4] = -1.0;
+points[5] = -1.0;
+
+// Point 3
+points[6] = -1.0;
+points[7] = -1.0;
+points[8] = 1.0;
+
+// Point 4
+points[9] = 1.0;
+points[10] = -1.0;
+points[11] = 1.0;
+
+// Point 5
+points[12] = -1.0;
+points[13] = 1.0;
+points[14] = -1.0;
+
+// Point 6
+points[15] = 1.0;
+points[16] = 1.0;
+points[17] = -1.0;
+
+// Point 7
+points[18] = -1.0;
+points[19] = 1.0;
+points[20] = 1.0;
+
+// Point 8
+points[21] = 1.0;
+points[22] = 1.0;
+points[23] = 1.0;
+
+let xRotation: float = 0.0;
+let yRotation: float = 0.0;
+let zRotation: float = 0.0;
+
+let X_ROTATE_SPEED: float = 0.03;
+let Y_ROTATE_SPEED: float = 0.08;
+let Z_ROTATE_SPEED: float = 0.13;
+
+let SCALEX: int = (__width - 4) / 8 as int;
+let SCALEY: int = (__height - 4) / 8 as int;
+
+let TRANSLATEX: int = (__width - 4) / 2 as int;
+let TRANSLATEY: int = (__height - 4) / 2 as int;
+
+while(true){
+    __clear #000000;
+
+    xRotation = xRotation + X_ROTATE_SPEED;
+    yRotation = yRotation + Y_ROTATE_SPEED;
+    zRotation = zRotation + Z_ROTATE_SPEED;
+
+    let newPoints: float[24] = [0.0];
+
+    newPoints = RotatePoints(points, xRotation, yRotation, zRotation);
+    let projected: int[16] = [0];
+    projected = Project(newPoints, SCALEX as float, SCALEY as float, TRANSLATEX as float, TRANSLATEY as float);
+    let ret: int = 0;
+
+    __print projected;
+
+    // 0 to 1
+    ret = DrawLine(projected[0], projected[2], projected[1], projected[3], #FFFFFF);
+
+    /*// 1 to 3
+    ret = DrawLine(projected[2], projected[6], projected[3], projected[7], #FFFFFF);
+
+    // 3 to 2
+    ret = DrawLine(projected[6], projected[4], projected[7], projected[5], #FFFFFF);
+
+    // 0 to 2
+    ret = DrawLine(projected[0], projected[4], projected[1], projected[5], #FFFFFF);
+
+    // 4 to 5
+    ret = DrawLine(projected[8], projected[10], projected[9], projected[11], #FFFFFF);
+
+    // 5 to 7
+    ret = DrawLine(projected[10], projected[14], projected[11], projected[15], #FFFFFF);
+
+    // 7 to 6
+    ret = DrawLine(projected[14], projected[12], projected[15], projected[13], #FFFFFF);
+
+    // 6 to 4
+    ret = DrawLine(projected[12], projected[8], projected[13], projected[9], #FFFFFF);
+
+    // 0 to 4
+    ret = DrawLine(projected[0], projected[8], projected[1], projected[9], #FFFFFF);
+
+    // 1 to 5
+    ret = DrawLine(projected[2], projected[10], projected[3], projected[11], #FFFFFF);
+
+    // 3 to 7
+    ret = DrawLine(projected[6], projected[14], projected[7], projected[15], #FFFFFF);
+
+    // 2 to 6
+    ret = DrawLine(projected[4], projected[12], projected[5], projected[13], #FFFFFF);*/
+
+    __delay 100;
+}
+
+/*let time: float = 0.0;
+
+while(true){
+    for(let x: int = 0; x < __width; x = x + 1){
+        let result: float = (Cos((x as float) * 0.3 + time) + 1.0) / 2.0;
+        result = result * 255.0;
+        for(let y: int = 0; y < __height; y = y + 1){
+            __write x, y, result as colour;
+        }
+    }  
+    __delay 100;
+    time = time + 0.2;
+}*/
+ 

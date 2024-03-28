@@ -188,6 +188,7 @@ namespace Tokens
         {
             MULTIPLY,
             DIVIDE,
+            MOD,
             AND,
         };
 
@@ -201,6 +202,10 @@ namespace Tokens
             else if (lexeme == "/")
             {
                 type = Type::DIVIDE;
+            }
+            else if (lexeme == "%")
+            {
+                type = Type::MOD;
             }
             else
             {
@@ -557,6 +562,7 @@ namespace Tokens
         X(__width, WIDTH) \
         X(__height, HEIGHT) \
         X(__read, READ) \
+        X(__clear, CLEAR) \
         X(__random_int, RANDOM_INT) \
         X(__print, PRINT) \
         X(__delay, DELAY) \

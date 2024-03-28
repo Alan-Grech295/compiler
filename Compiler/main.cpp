@@ -29,7 +29,7 @@ int main()
         file.close();
     }
 
-    std::cout << fileTextWithLines << std::endl;
+    //std::cout << fileTextWithLines << std::endl;
 
     Parser parser{ };
     Scope<ASTProgramNode> programAST;

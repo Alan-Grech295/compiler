@@ -60,6 +60,7 @@ private:
     Scope<ASTWidthNode> ParseWidth();
     Scope<ASTHeightNode> ParseHeight();
     Scope<ASTReadNode> ParseRead();
+    Scope<ASTClearNode> ParseClear();
     Scope<ASTRandIntNode> ParseRandInt();
 
     Scope<ASTPrintNode> ParsePrint();

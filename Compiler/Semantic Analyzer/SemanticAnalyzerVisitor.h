@@ -136,6 +136,9 @@ private:
 
     // Inherited via Visitor
     void visit(ASTArrayIndexNode& node) override;
+
+    // Inherited via Visitor
+    void visit(ASTClearNode& node) override;
 };
 
 #define ASSERT(check) if(!(check)) { throw SemanticErrorException(std::to_string(__LINE__)); }

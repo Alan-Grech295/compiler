@@ -131,6 +131,14 @@ Scope<ASTNode> Parser::ParseStatement()
                     ASSERT(CHECK_SUB_TYPE(token, Punctuation, type == Punctuation::Type::SEMICOLON));
                     return std::move(writeBox);
                 }
+
+                case Builtin::Type::CLEAR:
+                {
+                    auto clear = ParseClear();
+                    token = GetNextToken();
+                    ASSERT(CHECK_SUB_TYPE(token, Punctuation, type == Punctuation::Type::SEMICOLON));
+                    return std::move(clear);
+                }
             }
         }
     }
@@ -551,6 +559,16 @@ Scope<ASTReadNode> Parser::ParseRead()
     auto y = ParseExpression();
 
     return CreateScope<ASTReadNode>(std::move(x), std::move(y));
+}
+
+Scope<ASTClearNode> Parser::ParseClear()
+{
+    auto nextToken = GetNextToken();
+    ASSERT(CHECK_SUB_TYPE(nextToken, Builtin, type == Builtin::Type::CLEAR));
+
+    auto expr = ParseExpression();
+
+    return CreateScope<ASTClearNode>(std::move(expr));
 }
 
 Scope<ASTRandIntNode> Parser::ParseRandInt()

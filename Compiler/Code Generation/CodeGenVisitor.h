@@ -21,12 +21,18 @@ public:
         {
         }
 
+        Entry(int arraySize)
+            : arraySize(arraySize), function(true)
+        {
+        }
+
         const bool IsFunction() const { return false; }
         const bool IsArray() const { return arraySize > 0; }
     public:
         int index;
         int frameIndex;
         int arraySize = 0;
+        bool function = false;
     };
 public:
     CodeGenVisitor();
@@ -37,6 +43,9 @@ public:
                             X(SUBTRACT, SubtractOpInstruction) \
                             X(MULTIPLY, MultiplyOpInstruction) \
                             X(DIVIDE, DivideOpInstruction) \
+                            X(MOD, ModOpInstruction) \
+                            X(AND, AndOpInstruction) \
+                            X(OR, OrOpInstruction) \
                             X(GREATER, GreaterThanInstruction) \
                             X(GREATER_EQUAL, GreaterThanEqualInstruction) \
                             X(LESS_THAN, LessThanInstruction) \
@@ -70,6 +79,7 @@ public:
     virtual void visit(ASTReadNode& node) override;
     virtual void visit(ASTRandIntNode& node) override;
     virtual void visit(ASTFuncCallNode& node) override;
+    virtual void visit(ASTClearNode& node) override;
 
     std::string Finalize();
 
@@ -109,8 +119,6 @@ public:
         if (entry.IsArray())
         {
             index->accept(*this);
-            AddInstruction<PushInstruction>(entry.arraySize - 1);
-            AddInstruction<SubtractOpInstruction>();
             AddInstruction<PushInstruction>(entry.index);
             AddInstruction<AddOpInstruction>();
         }
@@ -125,6 +133,12 @@ public:
     void PopInstruction()
     {
         instructionList->pop_back();
+    }
+
+    void AddFuncInstructionList(ASTFunctionNode& node)
+    {
+        instructionList = &funcInstructionLists.emplace_back();
+        returnArraySize = node.returnSize;
     }
 
     void AddFuncInstructionList()
@@ -143,6 +157,8 @@ private:
     std::vector<InstructionList> funcInstructionLists;
     InstructionList mainInstructionList{};
     std::vector<InstructionRef<OpenFrameInstruction>> frameStack{};
+
+    int returnArraySize = 0;
 
 
     // Inherited via Visitor

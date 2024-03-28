@@ -73,6 +73,9 @@ ASTBinaryOpNode::ASTBinaryOpNode(Tokens::MultiplicativeOp::Type type, std::uniqu
         case Tokens::MultiplicativeOp::Type::DIVIDE:
             this->type = Type::DIVIDE;
             break;
+        case Tokens::MultiplicativeOp::Type::MOD:
+            this->type = Type::MOD;
+            break;
         case Tokens::MultiplicativeOp::Type::AND:
             this->type = Type::AND;
             break;
@@ -203,5 +206,10 @@ void ASTArraySetNode::AddLiterial(Scope<ASTExpressionNode> lit)
 
 ASTArrayIndexNode::ASTArrayIndexNode(const std::string& name, Scope<ASTExpressionNode> index)
     : ASTIdentifierNode(name), name(name), index(std::move(index))
+{
+}
+
+ASTClearNode::ASTClearNode(std::unique_ptr<ASTExpressionNode> expr)
+    : expr(std::move(expr))
 {
 }
