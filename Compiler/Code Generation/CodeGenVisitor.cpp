@@ -19,6 +19,15 @@ void CodeGenVisitor::visit(ASTBlockNode& node)
 
     for (auto& statement : node.statements)
     {
+        ASTFunctionNode* funcNode = dynamic_cast<ASTFunctionNode*>(statement.get());
+        if (funcNode)
+        {
+            symbolTable.AddEntry(funcNode->name, Entry(funcNode->returnSize));
+        }
+    }
+
+    for (auto& statement : node.statements)
+    {
         statement->accept(*this);
     }
 
@@ -157,12 +166,37 @@ void CodeGenVisitor::visit(ASTCastNode& node)
 void CodeGenVisitor::visit(ASTAssignmentNode& node)
 {
     node.expr->accept(*this);
-    Scope<ASTExpressionNode> index = nullptr;
-    if (auto arrIndexNode = dynamic_cast<ASTArrayIndexNode*>(node.identifier.get()))
+    auto& entry = symbolTable[node.identifier->name];
+    auto arrIndexNode = dynamic_cast<ASTArrayIndexNode*>(node.identifier.get());
+    if (!entry.IsArray() || arrIndexNode)
     {
-        index = std::move(arrIndexNode->index);
+        Scope<ASTExpressionNode> index = nullptr;
+        if (arrIndexNode)
+        {
+            index = std::move(arrIndexNode->index);
+        }
+        StoreVar(node.identifier->name, std::move(index));
     }
-    StoreVar(node.identifier->name, std::move(index));
+    else
+    {
+        // Assigning to a variable, so the data has to be reversed
+        if (auto idNode = dynamic_cast<ASTIdentifierNode*>(node.expr.get()))
+        {
+            auto& assignedEntry = symbolTable[idNode->name];
+
+            AddInstruction<PushInstruction>(entry.index);
+            AddInstruction<PushInstruction>(VM_FRAME_INDEX(entry.frameIndex));
+            AddInstruction<StoreArrayInstruction>();
+
+            AddInstruction<PushInstruction>(assignedEntry.arraySize);
+            AddInstruction<PushArrayInstruction>(entry.index, VM_FRAME_INDEX(entry.frameIndex));
+            AddInstruction<PushInstruction>(assignedEntry.arraySize);
+        }
+
+        AddInstruction<PushInstruction>(entry.index);
+        AddInstruction<PushInstruction>(VM_FRAME_INDEX(entry.frameIndex));
+        AddInstruction<StoreArrayInstruction>();
+    }
 }
 
 void CodeGenVisitor::visit(ASTDecisionNode& node)
@@ -199,17 +233,31 @@ void CodeGenVisitor::visit(ASTDecisionNode& node)
 
 void CodeGenVisitor::visit(ASTReturnNode& node)
 {
+    if (returnArraySize > 0)
+        AddInstruction<PushInstruction>(returnArraySize);
+
     node.expr->accept(*this);
     for (int i = 0; i < symbolTable.size() - symbolTable.isolatedLevel; i++)
     {
         AddInstruction<CloseFrameInstruction>();
     }
-    AddInstruction<ReturnInstruction>();
+
+    if (returnArraySize > 0)
+    {
+        AddInstruction<DropInstruction>();
+        AddInstruction<PushInstruction>(returnArraySize + 1);
+        AddInstruction<ReturnArrayInstruction>();
+    }
+    else
+    {
+        AddInstruction<ReturnInstruction>();
+    }
+
 }
 
 void CodeGenVisitor::visit(ASTFunctionNode& node)
 {
-    AddFuncInstructionList();
+    AddFuncInstructionList(node);
 
     AddInstruction<FuncDeclInstruction>(node.name);
 
@@ -219,7 +267,18 @@ void CodeGenVisitor::visit(ASTFunctionNode& node)
     int frameIndex = symbolTable.size() - 1;
     for (auto& param : node.params)
     {
-        symbolTable.AddEntry(param.Name, Entry(index, frameIndex));
+        symbolTable.AddEntry(param.Name, Entry(index, frameIndex, param.ArraySize));
+
+        if (param.IsArray())
+        {
+            AddInstruction<PushInstruction>(param.ArraySize);
+            AddInstruction<PushArrayInstruction>(index, VM_FRAME_INDEX(frameIndex));
+            AddInstruction<PushInstruction>(param.ArraySize);
+            AddInstruction<PushInstruction>(index);
+            AddInstruction<PushInstruction>(VM_FRAME_INDEX(frameIndex));
+            AddInstruction<StoreArrayInstruction>();
+        }
+
         index += (param.IsArray() ? param.ArraySize : 1);
     }
 
@@ -274,22 +333,31 @@ void CodeGenVisitor::visit(ASTForNode& node)
 void CodeGenVisitor::visit(ASTPrintNode& node)
 {
     node.expr->accept(*this);
-    if (auto idNode = dynamic_cast<ASTIdentifierNode*>(node.expr.get()))
+    int arraySize = -1;
+    bool reverse = false;
+    auto idNode = dynamic_cast<ASTIdentifierNode*>(node.expr.get());
+    if (idNode && !dynamic_cast<ASTArrayIndexNode*>(node.expr.get()))
     {
-        if (!dynamic_cast<ASTArrayIndexNode*>(node.expr.get()))
+        arraySize = symbolTable[idNode->name].arraySize;
+        reverse = true;
+    }
+
+    auto funcNode = dynamic_cast<ASTFuncCallNode*>(node.expr.get());
+    if (funcNode)
+    {
+        arraySize = symbolTable[funcNode->funcName].arraySize;
+    }
+    if (arraySize > 0)
+    {
+        if (reverse)
         {
-            auto& entry = symbolTable[idNode->name];
-            if (entry.IsArray())
-            {
-                PopInstruction();
-                AddInstruction<PushInstruction>(entry.arraySize);
-                AddInstruction<PushInstruction>(entry.arraySize + 1);
-                AddInstruction<PushFuncInstruction>("__Reverse");
-                AddInstruction<CallInstruction>();
-                AddInstruction<PrintArrayInstruction>();
-                return;
-            }
+            AddInstruction<PushInstruction>(arraySize + 1);
+            AddInstruction<PushFuncInstruction>("__Reverse");
+            AddInstruction<CallInstruction>();
         }
+        
+        AddInstruction<PrintArrayInstruction>();
+        return;
     }
     AddInstruction<PrintInstruction>();
 }
@@ -370,6 +438,12 @@ void CodeGenVisitor::visit(ASTFuncCallNode& node)
     AddInstruction<PushInstruction>(argSize);
     AddInstruction<PushFuncInstruction>(node.funcName);
     AddInstruction<CallInstruction>();
+}
+
+void CodeGenVisitor::visit(ASTClearNode& node)
+{
+    node.expr->accept(*this);
+    AddInstruction<ClearInstruction>();
 }
 
 std::string CodeGenVisitor::Finalize()

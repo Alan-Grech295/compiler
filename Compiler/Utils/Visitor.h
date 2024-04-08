@@ -28,6 +28,7 @@ class ASTReadNode;
 class ASTRandIntNode;
 class ASTFuncCallNode;
 class ASTArrayIndexNode;
+class ASTClearNode;
 
 class Visitor
 {
@@ -59,6 +60,7 @@ public:
     virtual void visit(ASTWidthNode& node)          = 0;
     virtual void visit(ASTHeightNode& node)         = 0;
     virtual void visit(ASTReadNode& node)           = 0;
+    virtual void visit(ASTClearNode& node)          = 0;
     virtual void visit(ASTRandIntNode& node)        = 0;
     virtual void visit(ASTFuncCallNode& node)       = 0;
 };

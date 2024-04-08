@@ -143,6 +143,7 @@ public:
         SUBTRACT,
         MULTIPLY,
         DIVIDE,
+        MOD,
 
         AND,
         OR,
@@ -356,6 +357,16 @@ public:
 public:
     Scope<ASTExpressionNode> x;
     Scope<ASTExpressionNode> y;
+};
+
+class ASTClearNode : public ASTExpressionNode
+{
+public:
+    ASTClearNode(std::unique_ptr<ASTExpressionNode> expr);
+
+    inline virtual void accept(Visitor& visitor) override { visitor.visit(*this); };
+public:
+    std::unique_ptr<ASTExpressionNode> expr;
 };
 
 class ASTRandIntNode : public ASTExpressionNode

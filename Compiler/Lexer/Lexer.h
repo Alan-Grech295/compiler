@@ -24,6 +24,7 @@ public:
         X(EXCLAMATION) \
                     \
         X(PLUS) \
+        X(PERCENT) \
         X(DASH) \
         X(ASTERISK) \
         X(FORWARD_SLASH) \
@@ -64,6 +65,7 @@ public:
         X(AdditiveOp, 24) \
         X(MultiplicativeOp, 6) \
         X(MultiplicativeOp, 9) \
+        X(MultiplicativeOp, 38) \
         X(LineComment, 7) \
         X(BlockComment, 8) \
         X(BlockComment, 10) \
@@ -117,7 +119,7 @@ private:
     Lexeme CatChar(char c);
 
 private:
-    const int NUM_STATES = 38;
+    const int NUM_STATES = 39;
     Table<int> transitions;
 #define X(cls, state) + 1
     static const int NUM_FINAL_STATES = 0 TOKEN_FINAL_STATE;

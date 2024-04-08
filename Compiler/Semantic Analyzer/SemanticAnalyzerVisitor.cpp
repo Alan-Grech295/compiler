@@ -77,6 +77,7 @@ void SemanticAnalyzerVisitor::visit(ASTBinaryOpNode& node)
         case ASTBinaryOpNode::Type::ADD:
         case ASTBinaryOpNode::Type::SUBTRACT:
         case ASTBinaryOpNode::Type::MULTIPLY:
+        case ASTBinaryOpNode::Type::MOD:
             ASSERT(type1.first != VarType::Type::BOOL && !IS_ARRAY(type1));
             PushType(type1);
             return;
@@ -365,4 +366,11 @@ void SemanticAnalyzerVisitor::visit(ASTArrayIndexNode& node)
     ASSERT(symbolTable.contains(node.name));
     auto& entry = symbolTable[node.name];
     PushType(entry.type);
+}
+
+void SemanticAnalyzerVisitor::visit(ASTClearNode& node)
+{
+    node.expr->accept(*this);
+    auto type = PopType();
+    ASSERT(type.first == VarType::Type::COLOUR && !IS_ARRAY(type));
 }
