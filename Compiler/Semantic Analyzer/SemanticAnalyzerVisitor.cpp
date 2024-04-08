@@ -162,6 +162,27 @@ void SemanticAnalyzerVisitor::visit(ASTReturnNode& node)
     ASSERT(type.first == expectedRetType && type.second == expectedRetArrSize);
 }
 
+static bool HasReturnNode(ASTBlockNode* blockNode) 
+{
+    for (auto& statement : blockNode->statements)
+    {
+        if (dynamic_cast<ASTReturnNode*>(statement.get()))
+            return true;
+
+        if (auto decisionNode = dynamic_cast<ASTDecisionNode*>(statement.get()))
+        {
+            if (decisionNode->falseStatement && 
+                HasReturnNode(decisionNode->trueStatement.get()) &&
+                HasReturnNode(decisionNode->falseStatement.get()))
+            {
+                return true;
+            }
+        }
+    }
+
+    return false;
+}
+
 void SemanticAnalyzerVisitor::visit(ASTFunctionNode& node)
 {
     ASSERT(symbolTable.InRootScope());
@@ -180,6 +201,8 @@ void SemanticAnalyzerVisitor::visit(ASTFunctionNode& node)
     }
 
     node.blockNode->accept(*this);
+
+    ASSERT(HasReturnNode(node.blockNode.get()));
 
     expectedRetType = VarType::Type::UNKNOWN;
     expectedRetArrSize = -1;
