@@ -76,7 +76,7 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <None Include="src\example.txt" />
+    <None Include="src\example_2.txt" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="src\example - full.txt" />

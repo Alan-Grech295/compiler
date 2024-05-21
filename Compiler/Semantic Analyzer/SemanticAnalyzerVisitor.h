@@ -16,7 +16,7 @@ public:
     SemanticErrorException(const std::string& line)
     {
         std::ostringstream oss;
-        oss << "Semantic error (line: " << line << ")";
+        oss << "Semantic error: " << line;
         msg = oss.str();
     }
 
@@ -141,5 +141,5 @@ private:
     void visit(ASTClearNode& node) override;
 };
 
-#define ASSERT(check) if(!(check)) { throw SemanticErrorException(std::to_string(__LINE__)); }
+#define ASSERT(check, message) if(!(check)) { throw SemanticErrorException(message); }
 #define IS_ARRAY(type) (type.second > 0)

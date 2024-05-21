@@ -662,6 +662,11 @@ Scope<ASTFuncCallNode> Parser::ParseFunctionCall()
     ASSERT(CHECK_SUB_TYPE(nextToken, Bracket, type == Bracket::Type::OPEN_PAREN));
 
     nextToken = PeekNextToken();
+    if (CHECK_SUB_TYPE(nextToken, Bracket, type == Bracket::Type::CLOSE_PAREN)) {
+        JumpToken(nextToken->lexemeLength);
+        return funcCall;
+    }
+
     while (!CHECK_SUB_TYPE(nextToken, Bracket, type == Bracket::Type::CLOSE_PAREN))
     {
         funcCall->AddArg(std::move(ParseExpression()));

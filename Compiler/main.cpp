@@ -40,6 +40,7 @@ int main()
     catch (Parser::SyntaxErrorException e)
     {
         std::cout << e.what() << std::endl;
+        return 1;
     }
 
     SemanticAnalyzerVisitor visitor{};
@@ -50,6 +51,7 @@ int main()
     catch (SemanticErrorException e)
     {
         std::cout << e.what() << std::endl;
+        return 1;
     }
 
     CodeGenVisitor codeGenVisitor{};
@@ -60,8 +62,7 @@ int main()
     catch (std::exception e)
     {
         std::cout << e.what() << std::endl;
+        return 1;
     }
     std::cout << codeGenVisitor.Finalize() << std::endl;
-
-    int a = 0;
 }

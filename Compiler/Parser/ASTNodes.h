@@ -80,6 +80,7 @@ public:
     inline virtual void accept(Visitor& visitor) override { visitor.visit(*this); };
 public:
     std::vector<Scope<ASTExpressionNode>> literals;
+    // Number of times to duplicate a number
     int duplication = -1;
 };
 
