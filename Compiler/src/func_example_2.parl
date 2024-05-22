@@ -1,3 +1,11 @@
+fun print_fib(x: int) -> int {
+    for(let i: int = 0; i < x; i = i + 1){
+        __print fib(i);
+    }
+
+    return 0;
+}
+
 fun fib(x: int) -> int {
     if(x <= 1){
         return x;
@@ -7,13 +15,5 @@ fun fib(x: int) -> int {
 }
 
 __print fib(20);
-
-fun print_fib(x: int) -> int {
-    for(let i: int = 0; i < x; i = i + 1){
-        __print fib(i);
-    }
-
-    return 0;
-}
 
 let status: int = print_fib(10);

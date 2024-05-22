@@ -14,7 +14,7 @@ int main()
 
     std::ifstream file;
     std::string line;
-    file.open("src/array_example_3.parl");
+    file.open("src/func_example_2.parl");
     std::string fileText;
     std::string fileTextWithLines;
     if (file.is_open())
