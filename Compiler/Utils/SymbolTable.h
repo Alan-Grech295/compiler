@@ -19,12 +19,12 @@ public:
             oss << "The identifier \"" << name << "\" was not found";
             msg = oss.str();
         }
-
+    public:
         const char* what()
         {
             return msg.c_str();
         }
-    private:
+    public:
         std::string msg;
     };
 public:
@@ -69,7 +69,7 @@ public:
             {
                 if (level < isolatedLevel)
                 {
-                    auto& entry = it->at(name);
+                    auto entry = it->at(name);
                     return entry.IsFunction();
                 }
                 return true;

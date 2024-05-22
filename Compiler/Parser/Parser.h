@@ -14,13 +14,13 @@ public:
     public:
         SyntaxErrorException(const std::string& program, int character, int codeLine)
         {
-            std::string programUpToChar = program.substr(0, character - 1);
+            std::string programUpToChar = program.substr(0, std::max(character, 0));
             int lineCount = std::ranges::count(programUpToChar, '\n') + 1;
             int lastLine = programUpToChar.rfind('\n');
-            int charCount = character - lastLine - 1;
+            int charCount = character - lastLine;
 
             std::ostringstream oss;
-            oss << "Syntax error at line " << lineCount << " character " << charCount << "(source code line: " << codeLine << ")";
+            oss << "Syntax error at line " << lineCount << " character " << charCount;
             message = oss.str();
         }
     public:

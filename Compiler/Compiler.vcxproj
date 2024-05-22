@@ -161,7 +161,9 @@
     <None Include="src\example_2.txt" />
   </ItemGroup>
   <ItemGroup>
+    <Text Include="src\basic_example_1.parl" />
     <Text Include="src\example - full.txt" />
+    <Text Include="src\func_example_2.parl" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

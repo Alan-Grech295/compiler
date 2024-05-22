@@ -26,7 +26,7 @@ public:
         {
         }
 
-        const bool IsFunction() const { return false; }
+        const bool IsFunction() const { return function; }
         const bool IsArray() const { return arraySize > 0; }
     public:
         int index;

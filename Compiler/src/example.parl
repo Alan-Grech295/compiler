@@ -15,7 +15,7 @@ let velYs: float[3] = [0.0];
 let cols: colour[3] = [#000000];
 cols = getRandomCols();
 
-let DELTA_T_MS: int = 100;
+let DELTA_T_MS: int = 50;
 let DELTA_T: float = 1.0 / (DELTA_T_MS as float);
 
 fun clamp(val: float, min: float, max: float) -> float {
@@ -55,7 +55,7 @@ while(true){
             velY = -velY;
         }
 
-        if((x <= 0.0) or (x >= (__width as float))){
+        if((x <= 0.0) or (x >= ((__width - SIZE) as float))){
             velX = -velX;
         }
 

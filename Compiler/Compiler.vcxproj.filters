@@ -80,5 +80,7 @@
   </ItemGroup>
   <ItemGroup>
     <Text Include="src\example - full.txt" />
+    <Text Include="src\basic_example_1.parl" />
+    <Text Include="src\func_example_2.parl" />
   </ItemGroup>
 </Project>

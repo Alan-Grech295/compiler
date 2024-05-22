@@ -1,0 +1,75 @@
+let arr1: int[10] = [0];
+let arr2: int[] = [5, 10, 2, 4, 6, 1, 0, 12, 82, 27];
+
+for(let i: int = 0; i < 10; i = i + 1) {
+    arr1[i] = __random_int 100;
+}
+
+__print arr1;
+__print -1;
+__print arr2;
+__print -1;
+
+fun bubble_sort(arr: int[10]) -> int[10] {
+    let sorted: bool = false;
+
+    for(let i: int = 0; (i < 10) and (not sorted); i = i + 1){
+        sorted = true;
+        for(let j: int = 0; j < 9; j = j + 1) {
+            if(arr[j] > arr[j + 1]){
+                sorted = false;
+                let temp: int = arr[j];
+                arr[j] = arr[j + 1];
+                arr[j + 1] = temp;
+            }
+        }
+    }
+
+    return arr;
+}
+
+arr1 = bubble_sort(arr1);
+arr2 = bubble_sort(arr2);
+
+__print arr1;
+__print -1;
+__print arr2;
+__print -1;
+
+
+let merged: int[20] = [1000000];
+
+let i: int = 0;
+let j: int = 0;
+
+let k: int = 0;
+
+let finished_array: bool = false;
+
+while((i < 10) or (j < 10)) {
+    if(i == 10){
+        finished_array = true; 
+        merged[k] = arr2[j];
+        j = j + 1;
+    }
+
+    if(j == 10){
+        finished_array = true;
+        merged[k] = arr1[i];
+        i = i + 1;
+    }
+
+    if(not finished_array){
+        if(arr1[i] < arr2[j]){
+            merged[k] = arr1[i];
+            i = i + 1;
+        }else{
+            merged[k] = arr2[j];
+            j = j + 1;
+        }
+    }
+
+    k = k + 1;
+}
+
+__print merged;

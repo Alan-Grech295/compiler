@@ -1,0 +1,10 @@
+let x: int = 0;
+
+x = 1 + 3 * 4;
+__print x;
+
+let y: int = x;
+__print y;
+
+y = y + x;
+__print y;
