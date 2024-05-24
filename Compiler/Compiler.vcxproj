@@ -158,11 +158,15 @@
     <ClInclude Include="Utils\Visitor.h" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="src\array_example_3.parl" />
+    <None Include="src\docs_example.parl" />
+    <None Include="src\bouncing_squares.parl" />
     <None Include="src\example_2.txt" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="src\basic_example_1.parl" />
-    <Text Include="src\example - full.txt" />
+    <Text Include="src\demo_draw.parl" />
+    <Text Include="src\example - full.parl" />
     <Text Include="src\func_example_2.parl" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

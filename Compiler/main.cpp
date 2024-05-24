@@ -14,7 +14,7 @@ int main()
 
     std::ifstream file;
     std::string line;
-    file.open("src/func_example_2.parl");
+    file.open("src/demo_draw.parl");
     std::string fileText;
     std::string fileTextWithLines;
     if (file.is_open())

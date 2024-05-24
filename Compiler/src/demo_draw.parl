@@ -1,0 +1,20 @@
+__clear #000000;
+
+fun shift(x: int, shifts: int) -> int {
+    for(let i: int = 0; i < shifts; i = i + 1){
+        x = x * 2;
+    }
+
+    return x;
+}
+
+
+for(let y: int = 0; y < __height; y = y + 1){
+    for(let x: int = 0; x < __width; x = x + 1){
+        let fracX: float = x / __width;
+        let fracY: float = y / __height;
+
+        __write x, y, (shift((fracX * 255.0) as int, 16) + shift((fracY * 255.0) as int, 8)) as colour;
+        __delay 5;
+    }
+}
