@@ -4,6 +4,7 @@ CodeGenVisitor::CodeGenVisitor()
 {
     AddFuncInstructionList();
 
+    // Adds builtin function to reverse arrays
     AddInstruction<FuncDeclInstruction>("__Reverse");
     AddInstruction<PushVarInstruction>(0, 0);
     AddInstruction<PushArrayInstruction>(1, 0);
@@ -17,6 +18,7 @@ void CodeGenVisitor::visit(ASTBlockNode& node)
 {
     PushScope();
 
+    // Adds function definition to symbol table
     for (auto& statement : node.statements)
     {
         ASTFunctionNode* funcNode = dynamic_cast<ASTFunctionNode*>(statement.get());
@@ -72,11 +74,11 @@ void CodeGenVisitor::visit(ASTIdentifierNode& node)
     }
     else
     {
-        // For some reason, the top of the memory stack has index 0. This
-        // means that the frame index for an indentifier depends on how many
-        // memory frames are on the stack currently. To avoid this, the variable
-        // stack index is stored in reverse (i.e. frameIndex 0 is the bottom of the stack)
-        // and the actual value is calculated when it is to be pushed.
+        // The top of the memory stack has index 0. This means that the frame index 
+        // for an indentifier depends on how many memory frames are on the stack 
+        // currently. To avoid this, the variable stack index is stored in reverse 
+        // (i.e. frameIndex 0 is the bottom of the stack) and the actual value is 
+        // calculated when it is to be pushed.
         AddInstruction<PushVarInstruction>(entry.index, VM_FRAME_INDEX(entry.frameIndex));
     }   
 }
@@ -133,6 +135,7 @@ void CodeGenVisitor::visit(ASTCastNode& node)
 {
     switch (node.castType)
     {
+        // When casting to int the value is truncated (i.e. rounded down)
     case Tokens::VarType::Type::INT:
     {
         int index = frameStack.back()->varCountRef->value++;
@@ -237,6 +240,7 @@ void CodeGenVisitor::visit(ASTReturnNode& node)
         AddInstruction<PushInstruction>(returnArraySize);
 
     node.expr->accept(*this);
+    // Closes all the open scopes before returning
     for (int i = 0; i < symbolTable.size() - symbolTable.isolatedLevel; i++)
     {
         AddInstruction<CloseFrameInstruction>();
@@ -269,6 +273,7 @@ void CodeGenVisitor::visit(ASTFunctionNode& node)
     {
         symbolTable.AddEntry(param.Name, Entry(index, frameIndex, param.ArraySize));
 
+        // Reverses the array (since it was reversed when retrieved)
         if (param.IsArray())
         {
             AddInstruction<PushInstruction>(param.ArraySize);
@@ -349,6 +354,7 @@ void CodeGenVisitor::visit(ASTPrintNode& node)
     }
     if (arraySize > 0)
     {
+        // Reverse array
         if (reverse)
         {
             AddInstruction<PushInstruction>(arraySize + 1);
@@ -412,6 +418,7 @@ void CodeGenVisitor::visit(ASTRandIntNode& node)
 void CodeGenVisitor::visit(ASTFuncCallNode& node)
 {
     int argSize = 0;
+    // Pushes all arguments
     for (auto it = node.args.rbegin(); it != node.args.rend(); ++it)
     {
         (*it)->accept(*this);
@@ -446,6 +453,7 @@ void CodeGenVisitor::visit(ASTClearNode& node)
     AddInstruction<ClearInstruction>();
 }
 
+// Converts the instructions to a string
 std::string CodeGenVisitor::Finalize()
 {
     std::string program = GetInstructionListString(mainInstructionList) + "\n";
@@ -457,6 +465,7 @@ std::string CodeGenVisitor::Finalize()
     return program;
 }
 
+// Converts a single instruction list to a string
 std::string CodeGenVisitor::GetInstructionListString(InstructionList& instructionList)
 {
     std::string instructions = "";
@@ -481,7 +490,7 @@ void CodeGenVisitor::visit(ASTArraySetNode& node)
     else
     {
         valCount = node.literals.size();
-        // Array values are push in "reverse". This is because
+        // Array values are pushed in "reverse". This is because
         // when the arrays are pushed from the memory stack to the
         // operand stack, they are pushed in reverse and hence cancel
         // out. This means that accessing them is done in reverse

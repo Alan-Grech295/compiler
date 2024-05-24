@@ -154,6 +154,8 @@ public:
 private:
     SymbolTable<Entry> symbolTable{};
     InstructionList* instructionList = &mainInstructionList;
+    // A separate instruction list is kept for each function 
+    // so they can be added to the end of the instructions
     std::vector<InstructionList> funcInstructionLists;
     InstructionList mainInstructionList{};
     std::vector<InstructionRef<OpenFrameInstruction>> frameStack{};

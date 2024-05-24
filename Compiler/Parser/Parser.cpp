@@ -19,6 +19,7 @@ Scope<ASTBlockNode> Parser::ParseBlock(bool root)
 
     auto token = PeekNextToken();
 
+    // Root program node does not need curly brackets to define a scope
     if (!root)
     {
         ASSERT(CHECK_SUB_TYPE(token, Bracket, type == Bracket::Type::OPEN_CURLY_BRACK));
@@ -170,9 +171,12 @@ Scope<ASTVarDeclNode> Parser::ParseVariableDeclaration()
 
     nextToken = GetNextToken();
     ASSERT(nextToken->type == Token::Type::ASSIGNMENT || CHECK_SUB_TYPE(nextToken, Bracket, type == Bracket::Type::OPEN_SQ_BRACK));
+
+    // Array variable declaration
     if(nextToken->type == Token::Type::BRACKET)
     {
         nextToken = GetNextToken();
+        // Allows either x[10] or x[]
         ASSERT(nextToken->type == Token::Type::INT_LITERAL || CHECK_SUB_TYPE(nextToken, Bracket, type == Bracket::Type::CLOSE_SQ_BRACK));
         if (nextToken->type == Token::Type::INT_LITERAL)
         {
@@ -189,6 +193,7 @@ Scope<ASTVarDeclNode> Parser::ParseVariableDeclaration()
 
         Scope<ASTArraySetNode> arraySetNode;
 
+        // If the array size depends on the number of hardcoded elements
         if (arraySize == -1)
         {
             arraySetNode = CreateScope<ASTArraySetNode>();
@@ -247,6 +252,7 @@ Scope<ASTExpressionNode> Parser::ParseExpression(bool subExpr)
         nextToken = PeekNextToken();
     }
 
+    // Casting
     if (CHECK_SUB_TYPE(nextToken, Keyword, type == Keyword::Type::AS))
     {
         JumpToken(nextToken->lexemeLength);
@@ -256,6 +262,7 @@ Scope<ASTExpressionNode> Parser::ParseExpression(bool subExpr)
         nextToken = PeekNextToken();
     }
 
+    // If this is a sub expression (i.e. expression within brackets) then it needs a close brackets
     ASSERT(!subExpr || (subExpr && CHECK_SUB_TYPE(nextToken, Bracket, type == Bracket::Type::CLOSE_PAREN)));
     if (subExpr)
         JumpToken(nextToken->lexemeLength);
@@ -310,6 +317,7 @@ Scope<ASTExpressionNode> Parser::ParseFactor()
         UndoToken(nextToken->startIndex);
         return ParseLiteral();
 
+        // Builtin keywords
     case Token::Type::BUILTIN:
     {
         UndoToken(nextToken->startIndex);
@@ -422,6 +430,7 @@ Scope<ASTFunctionNode> Parser::ParseFunctionDecl()
     std::vector<ASTFunctionNode::Param> params;
 
     nextToken = PeekNextToken();
+    // Reads the function parameters
     while (!CHECK_SUB_TYPE(nextToken, Bracket, type == Bracket::Type::CLOSE_PAREN))
     {
         params.push_back(ParseParam());
@@ -442,6 +451,7 @@ Scope<ASTFunctionNode> Parser::ParseFunctionDecl()
 
     nextToken = PeekNextToken();
     int arraySize = -1;
+    // If return type is an array
     if (CHECK_SUB_TYPE(nextToken, Bracket, type == Bracket::Type::OPEN_SQ_BRACK))
     {
         JumpToken(nextToken->lexemeLength);
@@ -465,6 +475,7 @@ Scope<ASTIdentifierNode> Parser::ParseIdentifier()
 
     nextToken = PeekNextToken();
     
+    // If identifier is array indexing
     if (CHECK_SUB_TYPE(nextToken, Bracket, type == Bracket::Type::OPEN_SQ_BRACK))
     {
         JumpToken(nextToken->lexemeLength);
@@ -662,6 +673,7 @@ Scope<ASTFuncCallNode> Parser::ParseFunctionCall()
     ASSERT(CHECK_SUB_TYPE(nextToken, Bracket, type == Bracket::Type::OPEN_PAREN));
 
     nextToken = PeekNextToken();
+    // Have to jump over the current token if the function call has no arguments
     if (CHECK_SUB_TYPE(nextToken, Bracket, type == Bracket::Type::CLOSE_PAREN)) {
         JumpToken(nextToken->lexemeLength);
         return funcCall;
@@ -695,6 +707,7 @@ ASTFunctionNode::Param Parser::ParseParam()
     param.Type = nextToken->As<VarType>().type;
 
     nextToken = PeekNextToken();
+    // If the parameter is an array
     if (CHECK_SUB_TYPE(nextToken, Bracket, type == Bracket::Type::OPEN_SQ_BRACK))
     {
         JumpToken(nextToken->lexemeLength);

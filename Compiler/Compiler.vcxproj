@@ -142,7 +142,6 @@
     <ClCompile Include="Parser\ASTNodes.cpp" />
     <ClCompile Include="Parser\Parser.cpp" />
     <ClCompile Include="Semantic Analyzer\SemanticAnalyzerVisitor.cpp" />
-    <ClCompile Include="Utils\Table.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Code Generation\CodeGenVisitor.h" />

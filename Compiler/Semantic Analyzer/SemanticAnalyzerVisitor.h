@@ -118,10 +118,9 @@ private:
 
     inline std::tuple<Type, Type> PopTypes()
     {
-        auto type1 = typeStack.back();
-        typeStack.pop_back();
-        auto type2 = typeStack.back();
-        typeStack.pop_back();
+        auto type1 = PopType();
+        auto type2 = PopType();
+        // Reverse pop order
         return std::make_tuple<>(type2, type1);
     }
 

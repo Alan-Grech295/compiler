@@ -15,6 +15,7 @@ Scope<Token> Lexer::PeekNextToken(const std::string& program, int& index, bool e
     bool inLineComment = nextToken->type == Token::Type::LINE_COMMENT;
     bool inBlockComment = nextToken->type == Token::Type::BLOCK_COMMENT && nextToken->As<BlockComment>().open;
 
+    // Skips over whitespace and comments
     while ((excludeWhitespace && (nextToken->type == Token::Type::WHITE_SPACE || nextToken->type == Token::Type::NEW_LINE)) ||
         (excludeComments && (nextToken->type == Token::Type::BLOCK_COMMENT || inLineComment || inBlockComment)))
     {
@@ -82,9 +83,11 @@ Scope<Token> Lexer::GetNextToken(const std::string& program, int index)
         return CreateScope<Token>(i - index);
     }
 
+    // Returns a token according to the final state
     return std::move(GetTokenByFinalState(lastAccState, program.substr(index, lastIndex - index + 1), index));
 }
 
+// Creates the transition table
 void Lexer::InitTable()
 {
     #pragma region Integers
@@ -212,6 +215,7 @@ Scope<Token> Lexer::GetTokenByFinalState(int state, const std::string& lexeme, u
 {
     switch (state)
     {
+        // Assumes the token class has a static Create function
 #define X(cls, state) case state: return std::move(cls::Create(lexeme, startIndex)); 
         TOKEN_FINAL_STATE
 #undef X
@@ -220,6 +224,7 @@ Scope<Token> Lexer::GetTokenByFinalState(int state, const std::string& lexeme, u
     return std::move(std::make_unique<Token>(lexeme.length()));
 }
 
+// Converts characters to lexemes
 Lexer::Lexeme Lexer::CatChar(char c)
 {
     if (std::isalpha(c))

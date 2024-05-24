@@ -6,6 +6,7 @@ class Table
 {
     friend class Col;
 public:
+    // Reference to element in table
     struct Ref
     {
         Ref(T* ref)
@@ -27,6 +28,7 @@ public:
         T* ref;
     };
 
+    // Reference to column in table
     struct RefCol
     {
         RefCol(int x, const Table<T>* table)

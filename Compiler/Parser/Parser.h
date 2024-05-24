@@ -86,5 +86,7 @@ private:
     int pastProgramIndex = 0;
 };
 
+// Checks that the given type is of the correct type and satisfies a condition
 #define CHECK_SUB_TYPE(var, cls, check) (var->type == ::Tokens::cls::TokenType && var->As<::Tokens::cls>().check)
+// Asserts and throws a syntax error on fail
 #define ASSERT(condition) if(!(condition)) { throw SyntaxErrorException(program, pastProgramIndex, __LINE__); }

@@ -63,6 +63,7 @@ public:
     bool contains(const std::string& name) const
     {
         int level = scopes.size();
+        // Checks all scopes for the definition
         for (auto it = scopes.rbegin(); it != scopes.rend(); ++it, --level)
         {
             if (it->contains(name))
@@ -70,6 +71,7 @@ public:
                 if (level < isolatedLevel)
                 {
                     auto entry = it->at(name);
+                    // Allows functions to be referenced outside of the current scope
                     return entry.IsFunction();
                 }
                 return true;
@@ -87,6 +89,7 @@ public:
     {
         int level = scopes.size();
 
+        // Checks all scopes for the item
         for (auto it = scopes.rbegin(); it != scopes.rend(); ++it, --level)
         {
             if (it->contains(name))

@@ -56,6 +56,7 @@ public:
         LAST = OTHER
     };
 
+    // Token created, Final state
 #define TOKEN_FINAL_STATE \
         X(IntegerLiteral, 1) \
         X(FloatLiteral, 3) \
@@ -94,10 +95,13 @@ public:
         return transitions[x];
     }
 
+    // Gets the next token and increments the program index to point to the next token
     Scope<Token> GetNextToken(const std::string& program, int& index, bool excludeWhitespace, bool excludeComments);
 
+    // Gets the next token without incrementing the program index
     Scope<Token> PeekNextToken(const std::string& program, int& index, bool excludeWhitespace, bool excludeComments);
 
+    // Gets the next token and increments the program index to point to the next token
     Scope<Token> GetNextToken(const std::string& program, int index);
 
 private:

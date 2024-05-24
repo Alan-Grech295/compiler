@@ -1,12 +1,10 @@
 #include "SemanticAnalyzerVisitor.h"
 
-// TODO: Check for functions called main
-// TODO: Check for returns in a functions (including if and elses)
-
 void SemanticAnalyzerVisitor::visit(ASTBlockNode& node)
 {
     symbolTable.PushScope();
     // Add function declarations before all statements
+    // This allows function calls to be made before the function is defined
     for (auto& statement : node.statements)
     {
         ASTFunctionNode* funcNode = dynamic_cast<ASTFunctionNode*>(statement.get());
@@ -83,6 +81,7 @@ void SemanticAnalyzerVisitor::visit(ASTBinaryOpNode& node)
             return;
         case ASTBinaryOpNode::Type::DIVIDE:
             ASSERT(type1.first != VarType::Type::BOOL && !IS_ARRAY(type1), "Invalid value type for binary operation");
+            // Division always returns a float
             PushType(VarType::Type::FLOAT);
             return;
         case ASTBinaryOpNode::Type::AND:
@@ -162,6 +161,9 @@ void SemanticAnalyzerVisitor::visit(ASTReturnNode& node)
     ASSERT(type.first == expectedRetType && type.second == expectedRetArrSize, "Returned value does not match expected value");
 }
 
+// Checks whether there is a return node in the current block
+// Valid returns are those directly in the current block
+// or if a return is defined in both the if and else statement
 static bool HasReturnNode(ASTBlockNode* blockNode) 
 {
     for (auto& statement : blockNode->statements)
